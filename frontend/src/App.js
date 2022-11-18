@@ -9,12 +9,13 @@ import Body5 from './components/body5';
 import Separator from './components/subcomponents/separator';
 import bg from "./assets/img/real-mountains.png";
 import bgWEB from './assets/img/real-mountainsWEB.png';
-import Snowfall from 'react-snowfall'
+import Snowfall from 'react-snowfall';
+import { FormPage } from './components/other-pages/formPage';
 
 function App() {
   return (
     <div  className="App"> 
-      <div className = " wrapper-parallex ">
+      {/* <div className = " wrapper-parallex ">
           <div  className="wrapper-mountains">
             <div className='d-none d-lg-block'>
               <img className='wrapper-mountains-img' src={bgWEB}  alt="Picture of mountains" />
@@ -30,7 +31,9 @@ function App() {
       <Body2></Body2>
       <Body3></Body3>
       <Body4></Body4>
-      <Body5></Body5>
+      <Body5></Body5> */}
+
+      <FormPage />
            
     </div>
   );
