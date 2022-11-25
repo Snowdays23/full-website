@@ -6,13 +6,31 @@ import "../../assets/css/bootstrap.min.css";
 import "../../assets/css/other-pages-css/styleFormPage.css";
 import Snowfall from 'react-snowfall';
 import TextField from '@mui/material/TextField';
+import { Checkbox } from '@mui/material/';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import MenuItem from '@mui/material/MenuItem';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { FormPageSport } from './formPageSport';
 
 export const FormPage = () => {
+
+    const theme = createTheme({
+        components: {
+          MuiTextField: {
+            styleOverrides: {
+              root: ({ ownerState }) => ({
+                ...(ownerState.variant === 'filled' &&
+                  ownerState.color === 'primary' && {
+                    backgroundColor: '#fff'
+                  }),
+              }),
+            },
+          },
+        },
+      });
     
     const [value, setValue] = React.useState();
     
@@ -37,12 +55,8 @@ export const FormPage = () => {
         },
         {
           value: 'N',
-          label: 'Neutral',
-        },
-        {
-          value: 'O',
-          label: 'Other',
-        },
+          label: "Don't want to specify",
+        }
       ];
     
         return (
@@ -87,66 +101,93 @@ export const FormPage = () => {
 
                         <Separator number={8} ></Separator>
 
-                        <div className='col-11 col-lg-8 '>
-                            
-                            <div id='form' className='p-1 '>
-                                <Separator number={4} ></Separator>
-                                <div className='row justify-content-center'>
-                                    <div className='col-6 col-lg-5' style={{position: "relative", right: -13}}>
-                                        <TextField id="filled-basic" label="Name" variant="filled" style={{width:'90%'}} />
+                        <ThemeProvider theme={theme} >
+
+                            <div className='col-11 col-lg-8 '>
+                                
+                                <div id='form' className='p-1 '>
+                                    <Separator number={4} ></Separator>
+                                    <div className='row justify-content-center'>
+                                        <div className='col-6 col-lg-5' style={{position: "relative", right: -13}}>
+                                            <TextField id="filled-basic" label="Name" variant="filled" style={{width:'90%'}} />
+                                        </div>
+                                        <div className="d-none d-lg-block col-lg-1"></div>
+                                        <div className='col-6 col-lg-5' style={{position: "relative", right: 13 }}>
+                                            <TextField id="filled-basic" label="Last Name" variant="filled" style={{width:'90%'}} />
+                                        </div>
                                     </div>
-                                    <div className="d-none d-lg-block col-lg-1"></div>
-                                    <div className='col-6 col-lg-5' style={{position: "relative", right: 13 }}>
-                                        <TextField id="filled-basic" label="Last Name" variant="filled" style={{width:'90%'}} />
+                                    <Separator number={2} ></Separator>
+                                    <div className='row justify-content-center'>
+                                        <div className='col-6 col-lg-5' style={{position: "relative", right: -13}}>
+                                            <TextField id="filled-basic" label="Email" variant="filled" style={{width:'90%'}} />
+                                        </div>
+                                        <div className="d-none d-lg-block col-lg-1"></div>
+                                        <div className='col-6 col-lg-5' style={{position: "relative", right: 13}} >
+                                            {/* <TextField id="filled-basic" label="Date of Birth" variant="filled" style={{width:'90%'}} /> */}
+                                            <LocalizationProvider dateAdapter={AdapterDayjs } >
+                                                <DesktopDatePicker
+                                                label="Date Birth"
+                                                inputFormat="DD/MM/YYYY"
+                                                value={value}
+                                                onChange={handleChange}
+                                                renderInput={(params) => <TextField {...params} style={{width:'90%'}} id="filled-basic" variant="filled" />}
+                                                />
+                                            </LocalizationProvider>                                        
+                                        </div>
                                     </div>
-                                </div>
-                                <Separator number={2} ></Separator>
-                                <div className='row justify-content-center'>
-                                    <div className='col-6 col-lg-5' style={{position: "relative", right: -13}}>
-                                        <TextField id="filled-basic" label="Email" variant="filled" style={{width:'90%'}} />
+                                    <Separator number={2} ></Separator>
+                                    <div className='row justify-content-center'>
+                                        <div className='col-6 col-lg-5' style={{position: "relative", right: -13}}>
+                                            <TextField id="filled-basic" label="Student Nr" variant="filled" style={{width:'90%'}} />
+                                        </div>
+                                        <div className="d-none d-lg-block col-lg-1"></div>
+                                        <div className='col-6 col-lg-5' style={{position: "relative", right: 13}} >
+                                            <TextField
+                                            id="filled-select-gender"
+                                            select
+                                            label="Gender"
+                                            value={gender}
+                                            onChange={handleChangeGender}
+                                            variant="filled"
+                                            style={{width:'90%'}}
+                                            >
+                                                {genders.map((option) => (
+                                                    <MenuItem key={option.value} value={option.value}>
+                                                    {option.label}
+                                                    </MenuItem>
+                                                ))}
+                                            </TextField>                                   
+                                        </div>
                                     </div>
-                                    <div className="d-none d-lg-block col-lg-1"></div>
-                                    <div className='col-6 col-lg-5' style={{position: "relative", right: 13}} >
-                                        {/* <TextField id="filled-basic" label="Date of Birth" variant="filled" style={{width:'90%'}} /> */}
-                                        <LocalizationProvider dateAdapter={AdapterDayjs } >
-                                            <DesktopDatePicker
-                                            label="Date Birth"
-                                            inputFormat="DD/MM/YYYY"
-                                            value={value}
-                                            onChange={handleChange}
-                                            renderInput={(params) => <TextField {...params} style={{width:'90%'}} id="filled-basic" variant="filled" />}
-                                            />
-                                        </LocalizationProvider>                                        
+                                    <Separator number={2} ></Separator>
+                                    <div className='row justify-content-center'>
+                                        <div className='col-6 col-lg-5' style={{position: "relative", right: -13}}>
+                                            <TextField id="filled-basic" label="University" variant="filled" style={{width:'90%'}} />
+                                        </div>
+                                        <div className="d-none d-lg-block col-lg-1"></div>
+                                        <div className='col-6 col-lg-5' style={{position: "relative", right: 13}}>
+                                            <TextField id="filled-basic" label="Phone Number" variant="filled" style={{width:'90%'}} />
+                                        </div>
                                     </div>
-                                </div>
-                                <Separator number={2} ></Separator>
-                                <div className='row justify-content-center'>
-                                    <div className='col-6 col-lg-5' style={{position: "relative", right: -13}}>
-                                        <TextField id="filled-basic" label="Matric Nr" variant="filled" style={{width:'90%'}} />
+                                    <Separator number={2} ></Separator>
+                                    <div className='row justify-content-center'>
+                                        <div className='col-12 col-sm-7 col-lg-5' style={{position: "relative", right: -20 }}>
+                                            <div style={{backgroundColor: "white", height: '100%', width: '90%'}}>
+                                                <label>Need Accomodation <Checkbox defaultChecked /></label>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="d-none d-lg-block col-lg-1"></div>
-                                    <div className='col-6 col-lg-5' style={{position: "relative", right: 13}} >
-                                        <TextField
-                                        id="filled-select-gender"
-                                        select
-                                        label="Gender"
-                                        value={gender}
-                                        onChange={handleChangeGender}
-                                        variant="filled"
-                                        style={{width:'90%'}}
-                                        >
-                                            {genders.map((option) => (
-                                                <MenuItem key={option.value} value={option.value}>
-                                                {option.label}
-                                                </MenuItem>
-                                            ))}
-                                        </TextField>                                   
-                                    </div>
+
+                                    <Separator number={5} ></Separator>
+
+                                    <FormPageSport />
                                 </div>
                             </div>
-                        </div>
+                        </ThemeProvider>
 
                         <Separator number={8} ></Separator>
+
+                        
 
                     </div>
 
