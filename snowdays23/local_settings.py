@@ -1,7 +1,11 @@
+import dj_database_url
+
 STATIC_ROOT = '/app/static/'
 
 # Reconfigure databases using DATABASE_URL environment variable
-DATABASES['default'] = dj_database_url.config(conn_max_age=600)
+DATABASES = {
+    "default": dj_database_url.config(conn_max_age=600)
+}
 
 # PayPal creds
 PAYPAL_CLIENT_ID = "ASviHC7eUli4wcDKphrreCoJVtht9Hxr2_y3VLKK6zcDSy8SHw20MKcf78BLrfXwS3pjTNuJps46gAjP"

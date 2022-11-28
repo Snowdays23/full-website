@@ -27,16 +27,20 @@ from sd23payments.utils import create_order, capture_payment
 
 class PlaceOrder(APIView):
     def post(self, request, sd_order_id=None):
+        order = None
         try:
             order = Order.objects.get(order_id=sd_order_id)
-        except Order.NotFound:
-            return JsonResponse({
-                # TODO: handle error
-            })
+        except Order.DoesNotExist:
+            print("no sd_order")
+            # return JsonResponse({
+            #     # TODO: handle error
+            # })
+            pass
 
-        amount = order.amount
+        amount = order.amount if order else 16.00
         pp_order = create_order(amount)
         if not pp_order:
+            print("no pp_order")
             pass # TODO: handle error
         return JsonResponse(pp_order)
 

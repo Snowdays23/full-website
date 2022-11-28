@@ -17,6 +17,8 @@
 
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.utils.translation import gettext_lazy as _
+
 
 from snowdays23.models import Participant
 
@@ -37,7 +39,7 @@ class Order(models.Model):
             ("pending", "Non pagato"),
             ("paid", "Pagato")
         ],
-        max_length=8
+        max_length=8,
         default="pending"
     )
 
@@ -50,7 +52,7 @@ class Order(models.Model):
     amount = models.DecimalField(
         verbose_name=_("total amount of this order"),
         validators=[
-            MinValueValidator(0)
+            MinValueValidator(0.0)
         ],
         max_digits=5,
         decimal_places=2
