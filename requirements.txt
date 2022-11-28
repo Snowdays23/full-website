@@ -4,3 +4,4 @@ gunicorn
 psycopg2
 dj_database_url
 requests
+django-cors-headers

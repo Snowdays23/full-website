@@ -23,9 +23,16 @@ from django.utils.translation import gettext_lazy as _
 from snowdays23.models import Participant
 
 class Order(models.Model):
-    order_id = models.CharField(
+    sd_order_id = models.CharField(
         max_length=32,
-        verbose_name=_("unique alphanumerical string identifying order")
+        verbose_name=_("unique alphanumerical string identifying order internally")
+    )
+
+    pp_order_id = models.CharField(
+        max_length=17,
+        verbose_name=_("paypal order id assigned during checkout"),
+        blank=True,
+        null=True
     )
 
     participant = models.ForeignKey(
@@ -56,4 +63,10 @@ class Order(models.Model):
         ],
         max_digits=5,
         decimal_places=2
+    )
+
+    pp_capture = models.JSONField(
+        null=True,
+        blank=True,
+        verbose_name=_("payment details provided by paypal after checkout")
     )

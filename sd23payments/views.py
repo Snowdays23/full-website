@@ -19,6 +19,7 @@ from django.conf import settings
 from django.shortcuts import render
 from django.http import JsonResponse
 
+from rest_framework import status
 from rest_framework.views import APIView
 
 from sd23payments.models import Order
@@ -27,24 +28,63 @@ from sd23payments.utils import create_order, capture_payment
 
 class PlaceOrder(APIView):
     def post(self, request, sd_order_id=None):
-        order = None
         try:
-            order = Order.objects.get(order_id=sd_order_id)
+            order = Order.objects.get(sd_order_id=sd_order_id)
         except Order.DoesNotExist:
-            print("no sd_order")
-            # return JsonResponse({
-            #     # TODO: handle error
-            # })
-            pass
-
-        amount = order.amount if order else 16.00
+            return JsonResponse({
+                "name": "RESOURCE_NOT_FOUND",
+                "message": "The requested order could not be found.",
+                "details": [
+                    {
+                        "field": "sd_order_id",
+                        "value": sd_order_id,
+                        "issue": "INVALID_RESOURCE_ID",
+                        "description": "The given internal order id is null or does not correspond to any valid order."
+                    }
+                ]
+            }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            
+        amount = order.amount
         pp_order = create_order(amount)
         if not pp_order:
-            print("no pp_order")
-            pass # TODO: handle error
+            return JsonResponse({
+                "name": "INTERNAL_SERVER_ERROR",
+                "message": "The server could not process this request at this time."
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        order.pp_order_id = pp_order["id"]
+        order.save()
+
         return JsonResponse(pp_order)
 
 
 class CaptureOrder(APIView):
     def post(self, request, pp_order_id=None):
-        pass
+        capture = capture_payment(pp_order_id)
+        if not capture:
+            return JsonResponse({
+                "name": "INTERNAL_SERVER_ERROR",
+                "message": "The server could not process this request at this time."
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            order = Order.objects.get(pp_order_id=pp_order_id)
+        except Order.DoesNotExist:
+            # payment completed but order not found, this should not happen
+            return JsonResponse({
+                "name": "INTERNAL_SERVER_ERROR",
+                "message": "The server could not process this request at this time.",
+                "details": [
+                    {
+                        "field": "pp_order_id",
+                        "value": pp_order_id,
+                        "issue": "INVALID_RESOURCE_ID",
+                        "description": "The PayPal order could not be traced back to the order placed on the shop. Please contact support."
+                    }
+                ]
+            })
+        if capture['status'] == "COMPLETED":
+            order.status = "paid"
+            order.pp_capture = capture
+            order.save()
+
+        return JsonResponse(capture)

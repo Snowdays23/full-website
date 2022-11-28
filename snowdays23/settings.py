@@ -28,6 +28,7 @@ SECRET_KEY = 'django-insecure-2-ewnr6g+vkftbt3i__6s-^2yf%1_@co9bl%(kzj7t16d)j%#f
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', 'snowdays-staging.herokuapp.com']
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
@@ -40,13 +41,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
     'snowdays23',
-    'sd23payments'
+    'sd23payments',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

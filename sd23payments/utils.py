@@ -21,52 +21,57 @@ import base64
 import requests
 import json
 
-
-PAYPAL_API_URL = "https://api-m.sandbox.paypal.com/"
+PAYPAL_API_URL = "https://api.paypal.com/"
+PAYPAL_SANDBOX_API_URL = "https://api-m.sandbox.paypal.com/"
 
 
 @staticmethod
 def create_order(amount):
-    token = generate_access_token()
-    if not token:
-        raise Exception('Could not generate access token')
-    r = requests.post(PAYPAL_API_URL + f"v2/checkout/orders", headers={
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {token}"
-    }, data=json.dumps({
-        "intent": "CAPTURE",
-        "purchase_units": {
-            "amount": {
-                "currency_code": "EUR",
-                "value": "%.2f" % amount
-            }
-        }
-    }))
-    return r.json() if r.ok else None
+    try:
+        token = generate_access_token()
+        r = requests.post(PAYPAL_SANDBOX_API_URL + f"v2/checkout/orders", headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        }, data=json.dumps({
+            "intent": "CAPTURE",
+            "purchase_units": [
+                {
+                    "amount": {
+                        "currency_code": "EUR",
+                        "value": "%.2f" % amount
+                    }
+                }
+            ]
+        }))
+    except:
+        return None
+    print(f"{r.status_code} | {r.content}")
+    return r.json()
 
 
 @staticmethod
 def capture_payment(order_id):
-    token = generate_access_token()
-    if not token:
-        raise Exception('Could not generate access token')
-    r = requests.post(PAYPAL_API_URL + f"v2/checkout/orders/{order_id}/capture", headers={
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {token}"
-    })
-    return r.json() if r.ok else None
+    try:
+        token = generate_access_token()
+        r = requests.post(PAYPAL_SANDBOX_API_URL + f"v2/checkout/orders/{order_id}/capture", headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        })
+    except:
+        return None
+    return r.json()
 
 
 @staticmethod
 def generate_access_token():
-    auth = base64.b64encode(f"{settings.PAYPAL_CLIENT_ID}:{settings.PAYPAL_SECRET}")
-    r = requests.post(PAYPAL_API_URL + "v1/oauth2/token", data={
+    auth = base64.b64encode(bytes(f"{settings.PAYPAL_CLIENT_ID}:{settings.PAYPAL_SECRET}", "utf-8")).decode()
+    r = requests.post(PAYPAL_SANDBOX_API_URL + "v1/oauth2/token", data={
         "grant_type": "client_credentials"
     }, headers={
         "Authorization": f"Basic {auth}"
     })
 
     if not r.ok:
-        return None
+        raise Exception(f"Could not generate access token: response code {r.status_code} and content {r.content}")
 
     return r.json()['access_token']
