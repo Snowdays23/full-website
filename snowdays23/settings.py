@@ -140,3 +140,4 @@ BRACELET_ID_REGEX = "[0-9_a-f]{16}"
 # Reconfigure databases using DATABASE_URL environment variable
 if "DATABASE_URL" in os.environ:
     DATABASES["default"] = dj_database_url.config(conn_max_age=600)
+    STATIC_ROOT = '/app/static/'
