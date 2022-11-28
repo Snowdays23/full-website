@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import dj_database_url
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -132,5 +133,10 @@ try:
 except:
     pass
 
+
 # Regex to validate bracelet ID (Mifare Ultralight 8 byte UID, hex)
 BRACELET_ID_REGEX = "[0-9_a-f]{16}"
+
+# Reconfigure databases using DATABASE_URL environment variable
+if "DATABASE_URL" in os.environ:
+    DATABASES["default"] = dj_database_url.config(conn_max_age=600)
