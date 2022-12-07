@@ -32,7 +32,8 @@ Including another URLconf
 """
 from django.conf import settings
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, re_path, include
+from django.shortcuts import render
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from rest_framework_simplejwt.views import (
@@ -41,6 +42,11 @@ from rest_framework_simplejwt.views import (
 )
 
 from snowdays23.views import GetParticipantByBraceletId, AssignBraceletToParticipant, ParticipantViewSet
+
+
+def serve_react(request):
+    return render(request, "index.html")
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -52,7 +58,9 @@ urlpatterns = [
     }), name="all_parts"),
     path('api/participant/<str:uid>', GetParticipantByBraceletId.as_view(), name="part_by_uid"),
     path('api/participant/<int:pk>/<str:uid>', AssignBraceletToParticipant.as_view(), name="uid_to_part"),
-    path('api/payments/', include('sd23payments.urls'))
+    path('api/payments/', include('sd23payments.urls')),
+
+    path("", serve_react)
 ]
 
 if settings.DEBUG:
