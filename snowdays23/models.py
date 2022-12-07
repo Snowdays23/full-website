@@ -22,6 +22,11 @@ from django.utils.translation import gettext_lazy as _
 
 
 class University(models.Model):
+    slug = models.CharField(
+        max_length=8,
+        verbose_name=_("code identifying university")
+    )
+
     name = models.TextField(
         verbose_name=_("full name of institution")
     )
@@ -38,10 +43,6 @@ class University(models.Model):
 
 
 class Gear(models.Model):
-    day = models.IntegerField(
-        verbose_name=_("rental day")
-    )
-
     name = models.CharField(
         choices=[
             ("ski", _("Sci")),
@@ -150,6 +151,27 @@ class Participant(models.Model):
         verbose_name=_("date of birth")
     )
 
+    gender = models.CharField(
+        choices=[
+            ("M", _("male")),
+            ("F", _("female")),
+            ("N", _("other/neutral/unspecified"))
+        ],
+        max_length=1,
+        verbose_name=_("gender"),
+        default="N"
+    )
+
+    phone = models.CharField(
+        max_length=16,
+        verbose_name=_("personal mobile number")
+    )
+
+    student_nr = models.CharField(
+        max_length=16,
+        verbose_name=_("registration number within university")
+    )
+
     bracelet_id = models.CharField(
         max_length=16,
         verbose_name=_("UID of the RFID bracelet associated with this participant"),
@@ -158,15 +180,21 @@ class Participant(models.Model):
     )
 
     height = models.IntegerField(
-        verbose_name=_("height in centimeters")
+        verbose_name=_("height in centimeters"),
+        null=True,
+        blank=True
     )
 
     weight = models.IntegerField(
-        verbose_name=_("weight in kilograms")
+        verbose_name=_("weight in kilograms"),
+        null=True,
+        blank=True
     )
 
     shoe_size = models.IntegerField(
-        verbose_name=_("european shoe size")
+        verbose_name=_("european shoe size"),
+        null=True,
+        blank=True
     )
 
     helmet_size = models.CharField(
@@ -177,8 +205,9 @@ class Participant(models.Model):
             ("XL", _("extra large"))
         ],
         max_length=2,
-        default="M",
         verbose_name=_("head size"),
+        null=True,
+        blank=True
     )
 
     university = models.ForeignKey(
@@ -193,9 +222,20 @@ class Participant(models.Model):
         verbose_name=_("special eating needs declared by this participant")
     )
 
+    additional_notes = models.TextField(
+        verbose_name=_("additional requests specified by this participant"),
+        blank=True,
+        null=True
+    )
+
     internal = models.BooleanField(
         default=False,
         verbose_name=_("flag indicating whether this participant belongs to the host university")
+    )
+
+    needs_accomodation = models.BooleanField(
+        default=False,
+        verbose_name=_("flag indicating whether this participant needs a schlafi")
     )
 
     schlafi = models.ForeignKey(
@@ -243,3 +283,6 @@ class Participant(models.Model):
                 code='schlafi_host_must_be_internal'
             )
         super().save(*args, **kwargs)
+
+    class Meta:
+        unique_together = ('university', 'student_nr')

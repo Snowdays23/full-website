@@ -16,8 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.conf import settings
-from django.shortcuts import render
-from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.http import JsonResponse, HttpResponse
+from django.views.generic import View
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -25,66 +28,50 @@ from rest_framework.views import APIView
 from sd23payments.models import Order
 from sd23payments.utils import create_order, capture_payment
 
+import stripe
 
-class PlaceOrder(APIView):
+stripe.api_key = settings.STRIPE_SECRET_API_KEY
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CreateStripeCheckout(View):
     def post(self, request, sd_order_id=None):
         try:
             order = Order.objects.get(sd_order_id=sd_order_id)
         except Order.DoesNotExist:
-            return JsonResponse({
-                "name": "RESOURCE_NOT_FOUND",
-                "message": "The requested order could not be found.",
-                "details": [
-                    {
-                        "field": "sd_order_id",
-                        "value": sd_order_id,
-                        "issue": "INVALID_RESOURCE_ID",
-                        "description": "The given internal order id is null or does not correspond to any valid order."
-                    }
-                ]
-            }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-            
+            return HttpResponse(204)
+        
+        if not order.is_eligible_for_payment():
+            return HttpResponse(204)
+
         amount = order.amount
-        pp_order = create_order(amount)
-        if not pp_order:
-            return JsonResponse({
-                "name": "INTERNAL_SERVER_ERROR",
-                "message": "The server could not process this request at this time."
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        order.pp_order_id = pp_order["id"]
-        order.save()
+                
+        price = stripe.Price.create(
+            unit_amount=18000,
+            currency="eur",
+            product_data={
+                "name": "SnowDays Ticket"
+            }
+        )
+        session = stripe.checkout.Session.create(
+            success_url=settings.STRIPE_CHECKOUT_SUCCESS_URL % sd_order_id,
+            cancel_url=settings.STRIPE_CHECKOUT_CANCEL_URL % sd_order_id,
+            line_items=[
+                {
+                    "price": price.id,
+                    "quantity": 1
+                }
+            ],
+            mode="payment"
+        )
+        print(session.id)
 
-        return JsonResponse(pp_order)
+        return redirect(session.url)
 
 
-class CaptureOrder(APIView):
-    def post(self, request, pp_order_id=None):
-        capture = capture_payment(pp_order_id)
-        if not capture:
-            return JsonResponse({
-                "name": "INTERNAL_SERVER_ERROR",
-                "message": "The server could not process this request at this time."
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        try:
-            order = Order.objects.get(pp_order_id=pp_order_id)
-        except Order.DoesNotExist:
-            # payment completed but order not found, this should not happen
-            return JsonResponse({
-                "name": "INTERNAL_SERVER_ERROR",
-                "message": "The server could not process this request at this time.",
-                "details": [
-                    {
-                        "field": "pp_order_id",
-                        "value": pp_order_id,
-                        "issue": "INVALID_RESOURCE_ID",
-                        "description": "The PayPal order could not be traced back to the order placed on the shop. Please contact support."
-                    }
-                ]
-            })
-        if capture['status'] == "COMPLETED":
-            order.status = "paid"
-            order.pp_capture = capture
-            order.save()
-
-        return JsonResponse(capture)
+@method_decorator(csrf_exempt, name='dispatch')
+class StripeCheckoutCompleted(View):
+    def get(self, request, **kwargs):
+        print(request.GET)
+        print(kwargs)
+        return HttpResponse("OK")

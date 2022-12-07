@@ -35,11 +35,21 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
 from snowdays23.views import GetParticipantByBraceletId, AssignBraceletToParticipant, ParticipantViewSet
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/participants', ParticipantViewSet.as_view({"get": "list"}), name="all_parts"),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/participants', ParticipantViewSet.as_view({
+        "get": "list",
+        "post": "create"
+    }), name="all_parts"),
     path('api/participant/<str:uid>', GetParticipantByBraceletId.as_view(), name="part_by_uid"),
     path('api/participant/<int:pk>/<str:uid>', AssignBraceletToParticipant.as_view(), name="uid_to_part"),
     path('api/payments/', include('sd23payments.urls'))

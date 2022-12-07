@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
+    'post_office',
     'snowdays23',
     'sd23payments',
 ]
@@ -56,6 +58,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication'
+    ]
+}
 
 ROOT_URLCONF = 'snowdays23.urls'
 
@@ -89,8 +97,19 @@ DATABASES = {
 }
 
 
+EMAIL_BACKEND = 'post_office.EmailBackend'
+
+POST_OFFICE = {
+    "DEFAULT_PRIORITY" : "medium"
+}
+
+EMAIL_HOST = "smtps.aruba.it"
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+
+
 # Password validation
-# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/4.1/ref/settings                                                                                     vvv/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -131,16 +150,30 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+# Regex to validate bracelet ID (Mifare Ultralight 8 byte UID, hex)
+BRACELET_ID_REGEX = "[0-9_a-f]{16}"
+
+# Regex to validate phone numbers (for this use case): +<prefix 2 or 3 digits long> <number 3 to 13 digits long>
+PHONE_NUMBER_REGEX = "\+[0-9]{2,3} [0-9]{3,13}"
+
+
+# In the Heroku environment
+if "DATABASE_URL" in os.environ:
+    # Reconfigure databases using DATABASE_URL environment variable
+    DATABASES["default"] = dj_database_url.config(conn_max_age=600)
+
+    # Configure folder to collect static files
+    STATIC_ROOT = '/app/static/'
+
+    # Receive Stripe API secret as environment variable
+    STRIPE_SECRET_API_KEY = os.environ["STRIPE_SK"]
+
+
+STRIPE_CHECKOUT_SUCCESS_URL = "http://localhost:8000/api/payments/order/%s/stripe/success"
+STRIPE_CHECKOUT_CANCEL_URL = "http://localhost:8000/api/payments/order/%s/stripe/cancel"
+
+
 try:
     from snowdays23.local_settings import *
 except:
     pass
-
-
-# Regex to validate bracelet ID (Mifare Ultralight 8 byte UID, hex)
-BRACELET_ID_REGEX = "[0-9_a-f]{16}"
-
-# Reconfigure databases using DATABASE_URL environment variable
-if "DATABASE_URL" in os.environ:
-    DATABASES["default"] = dj_database_url.config(conn_max_age=600)
-    STATIC_ROOT = '/app/static/'

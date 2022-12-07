@@ -22,6 +22,7 @@ from django.utils.translation import gettext_lazy as _
 
 from snowdays23.models import Participant
 
+
 class Order(models.Model):
     sd_order_id = models.CharField(
         max_length=32,
@@ -70,3 +71,9 @@ class Order(models.Model):
         blank=True,
         verbose_name=_("payment details provided by paypal after checkout")
     )
+
+    def is_eligible_for_payment(self):
+        return self.status == "pending" and self.participant
+
+    def is_eligible_for_capture(self):
+        return self.is_eligible_for_payment() and self.pp_order_id

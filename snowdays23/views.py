@@ -20,18 +20,34 @@ import re
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, authentication_classes, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from post_office import mail
 
 from snowdays23.models import Participant
-from snowdays23.serializers import ParticipantSerializer
+from snowdays23.serializers import ParticipantSerializer, NewParticipantSerializer
 
 
 class ParticipantViewSet(viewsets.ModelViewSet):
     queryset = Participant.objects.all()
-    serializer_class = ParticipantSerializer
+    
+    def get_serializer_class(self):
+        if not hasattr(self, 'action'):
+            return ParticipantSerializer
+        if self.action == "create":
+            return NewParticipantSerializer
+        return ParticipantSerializer
+
+    def list(self, request, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_staff:
+            return Response(
+                [], 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        return super().get(self, request, **kwargs)
 
 
 class GetParticipantByBraceletId(APIView):
