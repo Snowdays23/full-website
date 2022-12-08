@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-2-ewnr6g+vkftbt3i__6s-^2yf%1_@co9bl%(kzj7t16d)j%#f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', 'snowdays-staging.herokuapp.com']
+ALLOWED_HOSTS = ['localhost', 'snowdays-staging.herokuapp.com', 'localhost:3000']
 CORS_ALLOW_ALL_ORIGINS = True
 
 

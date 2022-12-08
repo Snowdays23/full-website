@@ -19,6 +19,8 @@ import re
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
+
 from rest_framework import serializers
 
 from snowdays23.models import Participant, EatingHabits, University
@@ -78,27 +80,30 @@ class NewParticipantSerializer(serializers.ModelSerializer):
 
     def validate_university(self, slug):
         if not slug:
-            raise serializers.ValidationError("university code cannot be null")
+            raise serializers.ValidationError(_("University code is not valid"))
         try:
             university = University.objects.get(slug=slug)
         except University.DoesNotExist:
-            raise serializers.ValidationError("university code is not valid")
+            raise serializers.ValidationError(_("University code is not valid"))
         return slug
     
     def validate_email(self, email):
         # FIXME: validate email against known list
+
+        if Participant.objects.filter(user__email=email).exists():
+            raise serializers.ValidationError(_("A participant with this email is already registered"))
         return email
 
     def validate_phone(self, phone):
         if not re.match(settings.PHONE_NUMBER_REGEX, phone):
-            raise serializers.ValidationError("phone number is not valid")
+            raise serializers.ValidationError(_("Phone number is not valid"))
         return phone
 
     def validate(self, data):
         university_code = data.get('university')
         student_nr = data.get('student_nr')
         if Participant.objects.filter(university__slug=data, student_nr=student_nr).exists():
-            raise serializers.ValidationError('duplicate student number within the same university')
+            raise serializers.ValidationError(_("Duplicate student number within the same university"))
         return data
 
     def create(self, validated_data):

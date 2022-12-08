@@ -1,6 +1,6 @@
 Django
 djangorestframework
-gunicorn
+uwsgi
 psycopg2
 dj_database_url
 requests
@@ -8,3 +8,4 @@ django-cors-headers
 django-post-office
 djangorestframework-simplejwt
 whitenoise
+stripe

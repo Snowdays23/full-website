@@ -50,7 +50,7 @@ class ParticipantAdmin(admin.ModelAdmin):
 
     def gear(self, obj):
         return format_html(
-            g.get_name_display() for g in obj.rented_gear.all()
+            ", ".join([g.get_name_display() for g in obj.rented_gear.all()])
         )
 
 admin.site.register(Participant, ParticipantAdmin)
