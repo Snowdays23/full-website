@@ -250,7 +250,6 @@ class Participant(models.Model):
 
     rented_gear = models.ManyToManyField(
         Gear,
-        on_delete=models.CASCADE,
         blank=True,
         verbose_name=_("equipment items requested for rental")
     )
@@ -286,6 +285,10 @@ class Participant(models.Model):
                 code='schlafi_host_must_be_internal'
             )
         super().save(*args, **kwargs)
+
+    def delete(self, **kwargs):
+        self.rented_gear.clear()
+        super().delete(**kwargs)
 
     class Meta:
         unique_together = ('university', 'student_nr')
