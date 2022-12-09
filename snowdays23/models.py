@@ -250,6 +250,7 @@ class Participant(models.Model):
 
     rented_gear = models.ManyToManyField(
         Gear,
+        on_delete=models.CASCADE,
         blank=True,
         verbose_name=_("equipment items requested for rental")
     )
