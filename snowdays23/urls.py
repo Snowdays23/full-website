@@ -60,7 +60,8 @@ urlpatterns = [
     path('api/participant/<int:pk>/<str:uid>', AssignBraceletToParticipant.as_view(), name="uid_to_part"),
     path('api/payments/', include('sd23payments.urls')),
 
-    path("", serve_react)
+    re_path(r"^$", serve_react),
+    re_path(r"^(?:.*)/?$", serve_react),
 ]
 
 if settings.DEBUG:

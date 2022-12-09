@@ -33,7 +33,6 @@ import stripe
 stripe.api_key = settings.STRIPE_SECRET_API_KEY
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class CreateStripeCheckout(View):
     def post(self, request, sd_order_id=None):
         try:
@@ -69,7 +68,6 @@ class CreateStripeCheckout(View):
         return redirect(session.url)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class StripeCheckoutCompleted(View):
     def get(self, request, **kwargs):
         print(request.GET)
