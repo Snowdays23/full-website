@@ -83,7 +83,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     email = serializers.CharField()
     eating_habits = EatingHabitsSerializer()
     university = serializers.CharField()
-    rented_gear = GearSerializer()
+    rented_gear = GearSerializer(many=True)
 
     def validate_university(self, slug):
         if not slug:
