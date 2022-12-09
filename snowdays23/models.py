@@ -60,7 +60,7 @@ class Gear(models.Model):
     )
 
     def __str__(self):
-        return "{} {} {}".format(self.name, _("for day"), self.day)
+        return self.name
 
     class Meta:
         verbose_name_plural = _("Gear items")

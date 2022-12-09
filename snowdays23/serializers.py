@@ -119,6 +119,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         email = validated_data.pop('email')
         university = University.objects.get(slug=validated_data.pop('university'))
         eating_habits = EatingHabits.objects.create(**validated_data.pop('eating_habits'))
+        rented_gear = validated_data.pop('rented_gear')
         participant = Participant.objects.create(
             user=User.objects.create(
                 first_name=first_name,
@@ -130,6 +131,11 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             eating_habits=eating_habits,
             **validated_data
         )
+        gear_items = Gear.objects.bulk_create([
+            Gear(**gear) for gear in rented_gear
+        ])
+        participant.rented_gear.set(gear_items)
+        participant.save()
         return participant
 
     class Meta:
