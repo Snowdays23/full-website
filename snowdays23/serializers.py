@@ -23,7 +23,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
-from snowdays23.models import Participant, EatingHabits, University
+from snowdays23.models import Participant, EatingHabits, University, Gear
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -41,6 +41,12 @@ class EatingHabitsSerializer(serializers.ModelSerializer):
 class UniversitySerializer(serializers.ModelSerializer):
     class Meta:
         model = University
+        fields = '__all__'
+
+
+class GearSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gear
         fields = '__all__'
 
 
@@ -77,6 +83,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     email = serializers.CharField()
     eating_habits = EatingHabitsSerializer()
     university = serializers.CharField()
+    rented_gear = GearSerializer()
 
     def validate_university(self, slug):
         if not slug:
@@ -142,5 +149,6 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             'height',
             'weight',
             'shoe_size',
-            'helmet_size'
+            'helmet_size',
+            'rented_gear'
         )

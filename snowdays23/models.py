@@ -32,7 +32,9 @@ class University(models.Model):
     )
 
     email_domain = models.TextField(
-        verbose_name=_("domain name associated with this university")
+        verbose_name=_("domain name associated with this university"),
+        null=True,
+        blank=True
     )
 
     def __str__(self):
