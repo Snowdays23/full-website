@@ -49,6 +49,19 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             )
         return super().get(self, request, **kwargs)
 
+    def perform_create(self, serializer):
+        participant = serializer.save()
+        mail.send(
+            participant.user.email,
+            "SnowDays <noreply@snowdays.it>",
+            template="form-confirmation",
+            context={
+                'participant': participant,
+                'checkout_url': "STILL NO URL"
+            },
+            priority='now'
+        )
+
 
 class GetParticipantByBraceletId(APIView):
     queryset = Participant.objects.all()
