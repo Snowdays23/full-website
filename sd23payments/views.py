@@ -21,12 +21,12 @@ from django.http import JsonResponse, HttpResponse
 from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.views import APIView
 
 from sd23payments.models import Order
-from sd23payments.utils import create_order, capture_payment
 
 import stripe
 
@@ -43,33 +43,39 @@ class CreateStripeCheckout(View):
         if not order.is_eligible_for_payment():
             return HttpResponse(204)
 
-        amount = order.amount
-                
-        price = stripe.Price.create(
-            unit_amount=18000,
+        # amount = order.amount
+
+        items = [{
+            "price": item.id,
+            "quantity": 1
+        } for item in [stripe.Price.create(
+            unit_amount=order_item.price,
             currency="eur",
             product_data={
-                "name": "SnowDays Ticket"
+                "name": order_item.name
             }
-        )
+        ) for order_item in order.items]]
+
         session = stripe.checkout.Session.create(
-            success_url=settings.STRIPE_CHECKOUT_SUCCESS_URL % sd_order_id,
-            cancel_url=settings.STRIPE_CHECKOUT_CANCEL_URL % sd_order_id,
-            line_items=[
-                {
-                    "price": price.id,
-                    "quantity": 1
-                }
-            ],
+            success_url=reverse("stripe-success", kwargs={
+                "sd_order_id": order.sd_order_id
+            }),
+            cancel_url=reverse("stripe-cancel", kwargs={
+                "sd_order_id": order.sd_order_id
+            }),
+            line_items=items,
             mode="payment"
         )
-        print(session.id)
 
         return redirect(session.url)
 
 
 class StripeCheckoutCompleted(View):
     def get(self, request, **kwargs):
-        print(request.GET)
-        print(kwargs)
-        return HttpResponse("OK")
+        # TODO: check order
+        return redirect('/success-checkout')
+
+
+class StripeCheckoutCanceled(View):
+    def get(self, request, **kwargs):
+        return redirect('/unsuccess-checkout')

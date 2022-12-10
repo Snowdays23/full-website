@@ -22,6 +22,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from sd23payments import views
 
 urlpatterns = [
-    path('order/<str:sd_order_id>/stripe/checkout', views.CreateStripeCheckout.as_view()),
-    path('order/<str:sd_order_id>/stripe/success', views.StripeCheckoutCompleted.as_view()),
+    path('order/<str:sd_order_id>/stripe/checkout', views.CreateStripeCheckout.as_view(), name="stripe-checkout"),
+    path('order/<str:sd_order_id>/stripe/success', views.StripeCheckoutCompleted.as_view(), name="stripe-success"),
+    path('order/<str:sd_order_id>/stripe/cancel', views.StripeCheckoutCanceled.as_view(), name="stripe-cancel")
 ]

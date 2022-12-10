@@ -19,6 +19,7 @@ import re
 
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, authentication_classes, permission_classes
 from rest_framework.views import APIView
@@ -29,6 +30,8 @@ from post_office import mail
 
 from snowdays23.models import Participant
 from snowdays23.serializers import ParticipantSerializer, NewParticipantSerializer
+
+from sd23payments.models import Order, BillableItem
 
 
 class ParticipantViewSet(viewsets.ModelViewSet):
@@ -51,6 +54,13 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         participant = serializer.save()
+
+        ticket = BillableItem.objects.get(name="ticket")
+        order = Order.objects.create(
+            participant=participant
+        )
+        order.items.add(ticket)
+
         mail.send(
             participant.user.email,
             "SnowDays <noreply@snowdays.it>",
@@ -58,7 +68,9 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             context={
                 'host': settings.HOST,
                 'participant': participant,
-                'checkout_url': "STILL NO URL"
+                'checkout_url': reverse("stripe-checkout", kwargs={
+                    "sd_order_id": order.sd_order_id
+                }, current_app="sd23payments")
             },
             priority='now'
         )
