@@ -82,6 +82,10 @@ class PoliciesSerializer(serializers.Serializer):
         model = Policies
         fields = '__all__'
 
+    def validate(self, data):
+        if not data.get("privacy") or not data.get("terms") or not data.get("payment"):
+            raise serializers.ValidationError(_("Privacy policy, general terms and payment policy have to be read and accepted to proceed"))
+        return data
 
 
 class NewParticipantSerializer(serializers.ModelSerializer):
@@ -113,12 +117,6 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         if not re.match(settings.PHONE_NUMBER_REGEX, phone):
             raise serializers.ValidationError(_("Phone number is not valid"))
         return phone
-
-    def validate_policies(self, policies):
-        print(policies)
-        if not policies["privacy"] or not policies["terms"] or not policies["payment"]:
-            raise serializers.ValidationError(_("Privacy policy, general terms and payment policy have to be read and accepted to proceed"))
-        return policies
 
     def validate(self, data):
         university_code = data.get('university')
