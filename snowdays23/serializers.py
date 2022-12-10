@@ -77,7 +77,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
         )
 
 
-class PoliciesSerializer(serializer.Serializer):
+class PoliciesSerializer(serializers.Serializer):
     privacy = serializers.BooleanField()
     terms = serializers.BooleanField()
     payment = serializers.BooleanField()
