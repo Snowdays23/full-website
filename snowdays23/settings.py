@@ -87,6 +87,8 @@ TEMPLATES = [
     },
 ]
 
+POST_OFFICE_TEMPLATES_DIR = os.path.join(BASE_DIR, "mail_templates")
+
 WSGI_APPLICATION = 'snowdays23.wsgi.application'
 
 
@@ -152,6 +154,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "frontend/build/static"),
+    os.path.join(BASE_DIR, "snowdays23/static"),
 ]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

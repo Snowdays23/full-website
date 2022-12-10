@@ -1,0 +1,48 @@
+Hi {{participant.first_name}} {{participant.last_name}}!
+
+Welcome aboard the SnowDays 2023 squad! We can't wait to see you here in Bozen for the long-awaited next chapter of our games. The sign-up process is complete and all there's left for you to do is purchase the ticket that will secure your entrance and all the included benefits.
+
+Before that, we kindly ask you to double-check the information you provided us. In case you made a mistake, please contact us so we can fix it before proceeding. Here is your data we currently have:
+
+- Full Name: {{participant.first_name}} {{participant.last_name}}
+- Date of Birth: {{participant.dob|date:"d/M/Y"}}
+- Phone Number: {{participant.phone}}
+- University: {{participant.university.name}}
+- Registration number (university ID): {{participant.student_nr}}
+
+{% if participant.needs_accomodation %}
+You specified that you DO need accomodation arranged by us here in Bozen.
+{% else %}
+You specified that you DO NOT need accomodation arranged by us here in Bozen.
+{% endif %}
+
+Your details about rentals:
+{% if participant.height %}- Height in centimeters: {{participant.height}}{% else %}- No height specified{% endif %}
+{% if participant.weight %}- Weight in kilograms: {{participant.weight}}{% else %}- No weight specified{% endif %}
+{% if participant.helmet_size %}- Helmet size: {{participant.helmet_size}}{% else %}- No helmet size specified{% endif %}
+{% if participant.shoe_size %}- Shoe size (european measure): {{participant.shoe_size}}{% else %}- No shoe size specified{% endif %}
+
+and finally, your eating needs:
+{% if participant.eating_habits.vegetarian %}- you are a vegetarian{% else %}- you are not a vegetarian{% endif %}
+{% if participant.eating_habits.vegan %}- you are vegan{% else %}- you are not vegan{% endif %}
+{% if participant.eating_habits.gluten_free %}- you are gluten intolerant{% else %}- you are not gluten intolerant{% endif %}
+{% if participant.eating_habits.lactose_free %}- you are lactose intolerant{% else %}- you are not lactose intolerant{% endif %}
+
+{% if participant.additional_notes %}
+- you specified the following additional notes about your eating needs: {{participant.additional_notes}}
+{% endif %}
+
+
+Once you made sure that all your details are correct, you're ready to go!
+
+Click on the following link to get to our checkout page.
+
+Here it is: {{checkout_url}}
+
+If you have questions, doubts or problems during the checkout process, feel free to contact us at support@snowdays.it.
+
+The SnowDays23 team wishes you happy festivities and longs to see you all here in February!
+
+Best
+
+SD23 team
