@@ -77,6 +77,13 @@ class ParticipantSerializer(serializers.ModelSerializer):
         )
 
 
+class PoliciesSerializer(serializer.Serializer):
+    privacy = serializers.BooleanField()
+    terms = serializers.BooleanField()
+    payment = serializers.BooleanField()
+
+
+
 class NewParticipantSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
@@ -84,6 +91,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     eating_habits = EatingHabitsSerializer()
     university = serializers.CharField()
     rented_gear = GearSerializer(many=True)
+    policies = PoliciesSerializer()
 
     def validate_university(self, slug):
         if not slug:
@@ -105,6 +113,10 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         if not re.match(settings.PHONE_NUMBER_REGEX, phone):
             raise serializers.ValidationError(_("Phone number is not valid"))
         return phone
+
+    def validate_policies(self, policies):
+        if not policies.privacy or not policies.terms or not policies.payment:
+            raise serializers.ValidationError(_("Privacy policy, general terms and payment policy have to be read and accepted to proceed"))
 
     def validate(self, data):
         university_code = data.get('university')
@@ -156,5 +168,6 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             'weight',
             'shoe_size',
             'helmet_size',
-            'rented_gear'
+            'rented_gear',
+            'policies'
         )
