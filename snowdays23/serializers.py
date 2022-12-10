@@ -115,7 +115,8 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         return phone
 
     def validate_policies(self, policies):
-        if not policies.get("privacy") or not policies.get("terms") or not policies.get("payment"):
+        print(policies)
+        if not policies["privacy"] or not policies["terms"] or not policies["payment"]:
             raise serializers.ValidationError(_("Privacy policy, general terms and payment policy have to be read and accepted to proceed"))
         return policies
 
