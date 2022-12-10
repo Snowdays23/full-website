@@ -40,8 +40,8 @@ class CreateStripeCheckout(View):
         except Order.DoesNotExist:
             return HttpResponse(204)
         
-        if not order.is_eligible_for_payment():
-            return HttpResponse(204)
+        # if not order.is_eligible_for_payment():
+        #     return HttpResponse(204)
 
         # amount = order.amount
 
