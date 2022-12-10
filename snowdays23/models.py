@@ -142,6 +142,23 @@ class MerchItem(models.Model):
         return f"{self.name} (size {self.size}, color {self.color})"
 
 
+class Policies(models.Model):
+    privacy = models.BooleanField(
+        default=False,
+        verbose_name=_("has read and accepted privacy policy")
+    )
+
+    terms = models.BooleanField(
+        default=False,
+        verbose_name=_("has read and accepted terms and conditions")
+    )
+
+    payment = models.BooleanField(
+        default=False,
+        verbose_name=_("has read and accepted payment policy")
+    )
+
+
 class Participant(models.Model):
     user = models.OneToOneField(
         "auth.User",
@@ -253,6 +270,14 @@ class Participant(models.Model):
         Gear,
         blank=True,
         verbose_name=_("equipment items requested for rental")
+    )
+
+    policies = models.ForeignKey(
+        Policies,
+        on_delete=models.PROTECT,
+        verbose_name=_("status of sign-up policies"),
+        null=True,
+        blank=True
     )
 
     def __str__(self):

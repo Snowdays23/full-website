@@ -23,7 +23,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
-from snowdays23.models import Participant, EatingHabits, University, Gear
+from snowdays23.models import Participant, EatingHabits, University, Gear, Policies
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -78,9 +78,9 @@ class ParticipantSerializer(serializers.ModelSerializer):
 
 
 class PoliciesSerializer(serializers.Serializer):
-    privacy = serializers.BooleanField()
-    terms = serializers.BooleanField()
-    payment = serializers.BooleanField()
+    class Meta:
+        model = Policies
+        fields = '__all__'
 
 
 
@@ -132,7 +132,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         university = University.objects.get(slug=validated_data.pop('university'))
         eating_habits = EatingHabits.objects.create(**validated_data.pop('eating_habits'))
         rented_gear = validated_data.pop('rented_gear')
-        policies = validated_data.pop('policies')
+        policies = Policies.objects.create(**validated_data.pop('policies'))
         participant = Participant.objects.create(
             user=User.objects.create(
                 first_name=first_name,
@@ -142,6 +142,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             ),
             university=university,
             eating_habits=eating_habits,
+            policies=policies,
             **validated_data
         )
         gear_items = Gear.objects.bulk_create([
