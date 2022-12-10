@@ -9,3 +9,4 @@ django-post-office
 djangorestframework-simplejwt
 whitenoise
 stripe
+django-inlinecss
