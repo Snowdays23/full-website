@@ -55,7 +55,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         participant = serializer.save()
 
-        ticket = BillableItem.objects.get(name="ticket")
+        ticket = BillableItem.objects.get(slug="ticket")
         order = Order.objects.create(
             participant=participant
         )

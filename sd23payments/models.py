@@ -41,6 +41,10 @@ class BillableItem(models.Model):
         verbose_name=_("unit price of item in cents")
     )
 
+    def __str__(self):
+        price_eur = self.price / 100.
+        return f"{self.name} ({price_eur:.2f} €)"
+
 
 class Order(models.Model):
     sd_order_id = models.CharField(
@@ -89,3 +93,6 @@ class Order(models.Model):
         blank=True,
         verbose_name=_("items included in this order")
     )
+
+    def __str__(self):
+        return f"{self.sd_order_id} [{self.status}] for {self.participant}"
