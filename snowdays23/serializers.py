@@ -132,6 +132,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         university = University.objects.get(slug=validated_data.pop('university'))
         eating_habits = EatingHabits.objects.create(**validated_data.pop('eating_habits'))
         rented_gear = validated_data.pop('rented_gear')
+        policies = validated_data.pop('policies')
         participant = Participant.objects.create(
             user=User.objects.create(
                 first_name=first_name,
