@@ -15,8 +15,8 @@ import dj_database_url
 import os
 
 # Quick and dirty fix for outdated library (inlinecss)
-from django.utils.encoding import smart_str
-django.utils.encoding.smart_text = smart_str
+import django.utils
+utils.encoding.smart_text = utils.encoding.smart_str
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
