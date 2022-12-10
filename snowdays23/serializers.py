@@ -109,7 +109,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     def validate(self, data):
         university_code = data.get('university')
         student_nr = data.get('student_nr')
-        if Participant.objects.filter(university__slug=data, student_nr=student_nr).exists():
+        if Participant.objects.filter(university__slug=university_code, student_nr=student_nr).exists():
             raise serializers.ValidationError(_("Duplicate student number within the same university"))
         return data
 
