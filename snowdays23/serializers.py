@@ -97,8 +97,8 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     def validate_email(self, email):
         # FIXME: validate email against known list
 
-        if Participant.objects.filter(user__email=email).exists():
-            raise serializers.ValidationError(_("A participant with this email is already registered"))
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError(_("Email is already registered"))
         return email
 
     def validate_phone(self, phone):
