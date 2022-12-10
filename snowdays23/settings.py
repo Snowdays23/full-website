@@ -28,7 +28,6 @@ SECRET_KEY = 'django-insecure-2-ewnr6g+vkftbt3i__6s-^2yf%1_@co9bl%(kzj7t16d)j%#f
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', 'snowdays-staging.herokuapp.com', 'localhost:3000']
-CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
@@ -60,7 +59,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CSRF_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
