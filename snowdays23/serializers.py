@@ -83,7 +83,7 @@ class PoliciesSerializer(serializers.Serializer):
         fields = '__all__'
 
     def validate(self, data):
-        if not data.get("privacy") or not data.get("terms") or not data.get("payment"):
+        if not data["privacy"] or not data["terms"] or not data["payment"]:
             raise serializers.ValidationError(_("Privacy policy, general terms and payment policy have to be read and accepted to proceed"))
         return data
 
