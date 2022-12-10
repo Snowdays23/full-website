@@ -201,6 +201,7 @@ class Participant(models.Model):
 
     helmet_size = models.CharField(
         choices=[
+            ("XS", _("extra small")),
             ("S", _("small")),
             ("M", _("medium")),
             ("L", _("large")),
