@@ -21,12 +21,14 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from post_office.models import EmailTemplate
+
 
 class Command(BaseCommand):
     def handle(self, clean=False, *args, **kwargs):
         for d in os.listdir(settings.POST_OFFICE_TEMPLATES_DIR):
             if os.path.isdir(Path(settings.POST_OFFICE_TEMPLATES_DIR) / d):
-                t_dir = settings.POST_OFFICE_TEMPLATES_DIR / d
+                t_dir = Path(settings.POST_OFFICE_TEMPLATES_DIR) / d
                 t = EmailTemplate.objects.get_or_create(name=d)[0]
                 with open(t_dir / f"subject.txt") as fh:
                     t.subject = fh.read().strip()
