@@ -64,9 +64,7 @@
                         <li>{% if participant.eating_habits.vegan %} you are vegan{% else %} you are not vegan{% endif %}</li>
                         <li>{% if participant.eating_habits.gluten_free %} you are gluten intolerant{% else %} you are not gluten intolerant{% endif %}</li>
                         <li>{% if participant.eating_habits.lactose_free %} you are lactose intolerant{% else %} you are not lactose intolerant{% endif %}</li>
-                        <li>{% if participant.additional_notes %}
-                        you specified the following additional notes about your eating needs: {{participant.additional_notes}}
-                    {% endif %}</li>
+                        <li>{% if participant.additional_notes %}you specified the following additional notes about your eating needs: {{participant.additional_notes}}{% else %}you have specified no additional notes regarding your eating needs{% endif %}</li>
                     </ul>
                     <br/>
                 </div>
