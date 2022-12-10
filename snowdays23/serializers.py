@@ -77,7 +77,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
         )
 
 
-class PoliciesSerializer(serializers.Serializer):
+class PoliciesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Policies
         fields = '__all__'
