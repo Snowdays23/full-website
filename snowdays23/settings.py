@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'post_office',
     'snowdays23',
     'sd23payments',
+    'django_inlinecss'
 ]
 
 MIDDLEWARE = [
