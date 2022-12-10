@@ -18,7 +18,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from sd23payments.models import Order
+from sd23payments.models import Order, BillableItem
 
 
 def register(model, **kw):
@@ -38,3 +38,4 @@ def register(model, **kw):
 
 
 register(Order)
+register(BillableItem)
