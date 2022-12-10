@@ -56,6 +56,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             "SnowDays <noreply@snowdays.it>",
             template="form-confirmation",
             context={
+                'host': settings.HOST,
                 'participant': participant,
                 'checkout_url': "STILL NO URL"
             },
