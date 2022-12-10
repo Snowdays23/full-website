@@ -18,4 +18,4 @@
 import secrets
 
 def generate_sd_order_id():
-    return secrets.token_hex(32)
+    return secrets.token_hex(16)
