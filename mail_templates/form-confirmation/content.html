@@ -12,90 +12,90 @@
             <img src="{% static 'snowdays23/img/email-logo.png' %}" class="mb-5" alt="logo" />
         </div>
         <div class="row justify-content-center h6 mt-5" >
-                <p class="sans-serif h6">
-                    <div class="col-8 sans-serif">
-                        Ciao {{participant.first_name}} {{participant.last_name}},
-                        <br/>
-                        Welcome aboard the SnowDays 2023 squad! We can't wait to see you here in Bozen for the long-awaited next chapter of our games. The sign-up process is complete and all there's left for you to do is purchase the ticket that will secure your entrance and all the included benefits.                    
-                        <br/>
-                        This is a recap of the info you just inserted, in case you made a mistake, please contact us so we can fix it before proceeding:
-                    </div>
-                    <div class="w-100"></div>
-                    <div class="col-8 sans-serif" >
-                        <ul>
-                            <li>Full Name: {{participant.first_name}} {{participant.last_name}}</li>
-                            <li>Gender: </li>
-                            <li>Date of Birth: {{participant.dob|date:"d/M/Y"}}</li>
-                            <li>Phone Number: {{participant.phone}}</li>
-                            <li>University: {{participant.university.name}}</li>
-                            <li>Registration number (university ID): {{participant.student_nr}}</li>
-                        </ul>
-                        <br/>
-                    </div>
-                    <div class="w-100"></div>
-                    <div class="col-8 sans-serif">
-                        {% if participant.needs_accomodation %}
-                        You specified that you DO need accomodation arranged by us here in Bozen.
-                        {% else %}
-                        You specified that you DO NOT need accomodation arranged by us here in Bozen.
-                        {% endif %}
-                        <br/>
-                        Sports you would like to play during Snwowdays23: 
-                        <br/>
-                    </div>
-                    <div class="w-100"></div>
-                    <div class="col-8 sans-serif">
-                        Your details about rentals:
-                        <br/>
-                        <ul>
-                            <li>{% if participant.height %} Height in centimeters: {{participant.height}}{% else %} No height specified{% endif %}</li>
-                            <li>{% if participant.weight %} Weight in kilograms: {{participant.weight}}{% else %} No weight specified{% endif %}</li>
-                            <li>{% if participant.helmet_size %} Helmet size: {{participant.helmet_size}}{% else %} No helmet size specified{% endif %}</li>
-                            <li>{% if participant.shoe_size %} Shoe size (european measure): {{participant.shoe_size}}{% else %} No shoe size specified{% endif %}</li>
-                        </ul>
-                    </div>
-                    <div class="w-100"></div>
-                    <div class="col-8 sans-serif">
-                        <br/>            
-                        and finally, your eating needs:
-                        <br/>
-                        <ul>
-                            <li>{% if participant.eating_habits.vegetarian %} you are a vegetarian{% else %} you are not a vegetarian{% endif %}</li>
-                            <li>{% if participant.eating_habits.vegan %} you are vegan{% else %} you are not vegan{% endif %}</li>
-                            <li>{% if participant.eating_habits.gluten_free %} you are gluten intolerant{% else %} you are not gluten intolerant{% endif %}</li>
-                            <li>{% if participant.eating_habits.lactose_free %} you are lactose intolerant{% else %} you are not lactose intolerant{% endif %}</li>
-                            <li>{% if participant.additional_notes %}
-                         you specified the following additional notes about your eating needs: {{participant.additional_notes}}
-                        {% endif %}</li>
-                        </ul>
-                        <br/>
-                    </div>
-                    <div class="w-100"></div>
-                    <div class="col-8 sans-serif">
-                        Once you made sure that all your details are correct, you're ready to go!
-                        <br/> 
-                        <br/>
-                        Click on the following link to get to our checkout page.
-                        <br/>
-                        Here it is: {{checkout_url}}
-                        <br/> 
-                        We kindly ask you to proceed as soon as possible!
-                        <br/> 
-                        <br/>
-                        We cannot wait to have you here on the slopes in Bozen!
-                        <br/> 
-                        Because remember, there are no days like Snowdays!
-                        <br/>
-                        <br/>
-                        Best,
-                        <br/>
-                        SD23 team
-                        <br/>   
-                        <br/>   
-                        <br/>   
-                    </div>
-                    <div class="w-100"></div>
-                </p>
+            <div class="sans-serif h6">
+                <div class="col-8 sans-serif">
+                    Ciao {{participant.first_name}} {{participant.last_name}},
+                    <br/>
+                    Welcome aboard the SnowDays 2023 squad! We can't wait to see you here in Bozen for the long-awaited next chapter of our games. The sign-up process is complete and all there's left for you to do is purchase the ticket that will secure your entrance and all the included benefits.                    
+                    <br/>
+                    This is a recap of the info you just inserted, in case you made a mistake, please contact us so we can fix it before proceeding:
+                </div>
+                <div class="w-100"></div>
+                <div class="col-8 sans-serif" >
+                    <ul>
+                        <li>Full Name: {{participant.first_name}} {{participant.last_name}}</li>
+                        <li>Gender: </li>
+                        <li>Date of Birth: {{participant.dob|date:"d/M/Y"}}</li>
+                        <li>Phone Number: {{participant.phone}}</li>
+                        <li>University: {{participant.university.name}}</li>
+                        <li>Registration number (university ID): {{participant.student_nr}}</li>
+                    </ul>
+                    <br/>
+                </div>
+                <div class="w-100"></div>
+                <div class="col-8 sans-serif">
+                    {% if participant.needs_accomodation %}
+                    You specified that you DO need accomodation arranged by us here in Bozen.
+                    {% else %}
+                    You specified that you DO NOT need accomodation arranged by us here in Bozen.
+                    {% endif %}
+                    <br/>
+                    Sports you would like to play during Snwowdays23: 
+                    <br/>
+                </div>
+                <div class="w-100"></div>
+                <div class="col-8 sans-serif">
+                    Your details about rentals:
+                    <br/>
+                    <ul>
+                        <li>{% if participant.height %} Height in centimeters: {{participant.height}}{% else %} No height specified{% endif %}</li>
+                        <li>{% if participant.weight %} Weight in kilograms: {{participant.weight}}{% else %} No weight specified{% endif %}</li>
+                        <li>{% if participant.helmet_size %} Helmet size: {{participant.helmet_size}}{% else %} No helmet size specified{% endif %}</li>
+                        <li>{% if participant.shoe_size %} Shoe size (european measure): {{participant.shoe_size}}{% else %} No shoe size specified{% endif %}</li>
+                    </ul>
+                </div>
+                <div class="w-100"></div>
+                <div class="col-8 sans-serif">
+                    <br/>            
+                    and finally, your eating needs:
+                    <br/>
+                    <ul>
+                        <li>{% if participant.eating_habits.vegetarian %} you are a vegetarian{% else %} you are not a vegetarian{% endif %}</li>
+                        <li>{% if participant.eating_habits.vegan %} you are vegan{% else %} you are not vegan{% endif %}</li>
+                        <li>{% if participant.eating_habits.gluten_free %} you are gluten intolerant{% else %} you are not gluten intolerant{% endif %}</li>
+                        <li>{% if participant.eating_habits.lactose_free %} you are lactose intolerant{% else %} you are not lactose intolerant{% endif %}</li>
+                        <li>{% if participant.additional_notes %}
+                        you specified the following additional notes about your eating needs: {{participant.additional_notes}}
+                    {% endif %}</li>
+                    </ul>
+                    <br/>
+                </div>
+                <div class="w-100"></div>
+                <div class="col-8 sans-serif">
+                    Once you made sure that all your details are correct, you're ready to go!
+                    <br/> 
+                    <br/>
+                    Click on the following link to get to our checkout page.
+                    <br/>
+                    Here it is: {{checkout_url}}
+                    <br/> 
+                    We kindly ask you to proceed as soon as possible!
+                    <br/> 
+                    <br/>
+                    We cannot wait to have you here on the slopes in Bozen!
+                    <br/> 
+                    Because remember, there are no days like Snowdays!
+                    <br/>
+                    <br/>
+                    Best,
+                    <br/>
+                    SD23 team
+                    <br/>   
+                    <br/>   
+                    <br/>   
+                </div>
+                <div class="w-100"></div>
+            </div>
         </div>
         <div class="row justify-content-center center sans-serif">
             <div class="col-10 center">
