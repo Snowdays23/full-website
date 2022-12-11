@@ -84,6 +84,18 @@ class StripeCheckoutCompleted(View):
 
         if not session.status == "complete" and not session.payment_status == "paid":
             return redirect("not-found")
+        
+        mail.send(
+            order.participant.user.email,
+            "SnowDays <noreply@snowdays.it>",
+            template="payment-confirmation",
+            context={
+                'host': settings.HOST,
+                'participant': order.participant,
+                'CODE': order.id
+            },
+            priority='now'
+        )
 
         order.status = "paid"
         order.save()
