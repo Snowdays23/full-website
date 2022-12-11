@@ -137,6 +137,12 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         student_nr = data.get('student_nr')
         if Participant.objects.filter(university__slug=university_code, student_nr=student_nr).exists():
             raise serializers.ValidationError(_("Duplicate student number within the same university"))
+        
+        rented_gear = data['rented_gear']
+        for i, gear in enumerate(rented_gear):
+            if rented_gear.index(gear) != i:
+                raise serializers.ValidationError(_("Only one item per type can be selected for rental"))
+
         return data
 
     def create(self, validated_data):
