@@ -192,6 +192,9 @@ STRIPE_CHECKOUT_SUCCESS_URL = "http://localhost:8000/api/payments/order/%s/strip
 STRIPE_CHECKOUT_CANCEL_URL = "http://localhost:8000/api/payments/order/%s/stripe/cancel"
 
 
+STRICT_ALLOWED_EMAIL_CHECK = False
+
+
 try:
     from snowdays23.local_settings import *
 except:

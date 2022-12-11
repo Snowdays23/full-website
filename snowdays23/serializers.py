@@ -25,7 +25,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
-from snowdays23.models import Participant, EatingHabits, University, Gear, Policies
+from snowdays23.models import Participant, AllowedParticipant, EatingHabits, University, Gear, Policies
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -114,7 +114,9 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         return slug
     
     def validate_email(self, email):
-        # FIXME: validate email against known list
+        if settings.STRICT_ALLOWED_EMAIL_CHECK:
+            if not AllowedParticipant.objects.filter(email=email).exists():
+                raise serializers.ValidationError(_("Email is not an allowed participant"))
 
         if User.objects.filter(email=email).exists():
             raise serializers.ValidationError(_("Email is already registered"))
