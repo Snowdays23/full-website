@@ -32,8 +32,9 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('csvpath', type=str)
         parser.add_argument('--clean', action='store_true')
+        parser.add_argument('--verbose', action='store_true')
 
-    def handle(self, csvpath=None, clean=False, *args, **kwargs):
+    def handle(self, csvpath=None, clean=False, verbose=False, *args, **kwargs):
         if not csvpath:
             sys.exit(f"Usage: {sys.argv[0]} [--clean] <csv path>")
         if clean:
@@ -42,11 +43,13 @@ class Command(BaseCommand):
         with open(csvpath, "r") as csvf:
             r = csv.reader(csvf)
             for row in r:
-                if len(row) < 4:
-                    print("Invalid row, skipping...")
+                if len(row) < 4 or not row[1] or not row[2]:
+                    if verbose:
+                        print("Invalid row, skipping...")
                     continue
                 if not re.fullmatch(EMAIL_REG, row[3]):
-                    print(f"[W] Invalid email detected: {row[2]}, proceeding anyway...")
+                    if verbose:
+                        print(f"[W] Invalid email detected: {row[2]}, proceeding anyway...")
                 
                 print(f"Adding {row[1]} {row[2]} ({row[3]}) to the allowed participants")
                 AllowedParticipant.objects.create(email=row[2])
