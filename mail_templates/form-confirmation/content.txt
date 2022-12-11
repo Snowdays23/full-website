@@ -26,6 +26,7 @@ Your details about rentals:
 {% if participant.shoe_size %}- Shoe size (european measure): {{participant.shoe_size}}{% else %}- No shoe size specified{% endif %}
 
 What you want to rent:
+-
 
 and finally, your eating needs:
 {% if participant.eating_habits.vegetarian %}- you are a vegetarian{% else %}- you are not a vegetarian{% endif %}
