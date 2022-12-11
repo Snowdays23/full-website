@@ -57,10 +57,10 @@ class CreateStripeCheckout(View):
         ) for order_item in order.items.all()]]
 
         session = stripe.checkout.Session.create(
-            success_url=reverse("stripe-success", kwargs={
+            success_url=settings.HOST + reverse("stripe-success", kwargs={
                 "sd_order_id": order.sd_order_id
             }),
-            cancel_url=reverse("stripe-cancel", kwargs={
+            cancel_url=settings.HOST + reverse("stripe-cancel", kwargs={
                 "sd_order_id": order.sd_order_id
             }),
             line_items=items,
