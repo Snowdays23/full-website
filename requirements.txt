@@ -10,3 +10,4 @@ djangorestframework-simplejwt
 whitenoise
 stripe
 django-inlinecss
+python-dateutil

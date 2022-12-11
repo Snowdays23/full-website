@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import datetime
+from dateutil.relativedelta import relativedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -117,6 +119,11 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         if not re.match(settings.PHONE_NUMBER_REGEX, phone):
             raise serializers.ValidationError(_("Phone number is not valid"))
         return phone
+
+    def validate_dob(self, dob):
+        if dob < datetime.date.today() - relativedelta(years=18):
+            raise serializers.ValidationError(_("Participants must be at least 18 years old"))
+        return dob
 
     def validate(self, data):
         university_code = data.get('university')
