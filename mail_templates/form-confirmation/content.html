@@ -59,7 +59,7 @@
                     What you want to rent:
                     <br/>
                     <ul>
-                        {% for gear in rented_gear %}
+                        {% for gear in participant.rented_gear.all %}
                         <li>{{ gear.get_name_display }}</li>
                         {% endfor %}
                     </ul>
