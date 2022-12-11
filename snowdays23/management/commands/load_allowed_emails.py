@@ -45,7 +45,7 @@ class Command(BaseCommand):
                 if len(row) < 3:
                     print("Invalid row, skipping...")
                     continue
-                if not re.fullmatch(row[2]):
+                if not re.fullmatch(EMAIL_REG, row[2]):
                     print(f"[W] Invalid email detected: {row[2]}, proceeding anyway...")
                 
                 print(f"Adding {row[0]} {row[1]} ({row[2]}) to the allowed participants")
