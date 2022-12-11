@@ -54,7 +54,7 @@ class Order(models.Model):
     )
 
     stripe_order_id = models.CharField(
-        max_length=17,
+        max_length=92,
         verbose_name=_("stripe order id assigned during checkout"),
         blank=True,
         null=True
