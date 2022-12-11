@@ -38,12 +38,10 @@ class CreateStripeCheckout(View):
         try:
             order = Order.objects.get(sd_order_id=sd_order_id)
         except Order.DoesNotExist:
-            return HttpResponse(204)
-        
-        # if not order.is_eligible_for_payment():
-        #     return HttpResponse(204)
+            return redirect("not-found")
 
-        # amount = order.amount
+        if order.stripe_order_id and order.status == "paid":
+            return redirect("not-found")
 
         items = [{
             "price": item.id,
@@ -71,8 +69,20 @@ class CreateStripeCheckout(View):
 
 
 class StripeCheckoutCompleted(View):
-    def get(self, request, **kwargs):
-        # TODO: check order
+    def get(self, request, sd_order_id=None, **kwargs):
+        try:
+            order = Order.objects.get(sd_order_id=sd_order_id)
+        except Order.DoesNotExist:
+            return redirect("not-found")
+        
+        try:
+            session = stripe.checkout.Session.retrieve(order.stripe_order_id)
+        except:
+            return redirect("not-found")
+
+        if session.status == "complete" or session.payment_status == "paid":
+            return redirect("not-found")
+
         return redirect('/success-checkout')
 
 

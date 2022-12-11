@@ -60,6 +60,7 @@ urlpatterns = [
     path('api/participant/<int:pk>/<str:uid>', AssignBraceletToParticipant.as_view(), name="uid_to_part"),
     path('api/payments/', include('sd23payments.urls')),
 
+    path('/not-found', serve_react, name="not-found"),
     re_path(r"^$", serve_react),
     re_path(r"^(?:.*)/?$", serve_react),
 ]
