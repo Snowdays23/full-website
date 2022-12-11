@@ -1,0 +1,18 @@
+Ciao {{participant.first_name}} {{participant.last_name}},
+with this email we want to confirm that we have received your payment. We are looking forward to see you at the event!
+
+Your ticket code: {{CODE}}
+For any problem or question, don't hesitate to contact us at info@snowdays.it
+
+
+❄❄❄❄❄❄❄❄❄❄❄❄❄❄❄
+
+SNOWDAYS
+
+❄ Europe's biggest winter sports event organised by students for students ❄
+
+C5.06 - Universitätsplatz / Piazza Università, 1
+
+I - 39100 Bozen/Bolzano
+                    
+IG: @snowdays.bolzano
