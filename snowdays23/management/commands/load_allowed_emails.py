@@ -42,11 +42,11 @@ class Command(BaseCommand):
         with open(csvpath, "r") as csvf:
             r = csv.reader(csvf)
             for row in r:
-                if len(row) < 3:
+                if len(row) < 4:
                     print("Invalid row, skipping...")
                     continue
-                if not re.fullmatch(EMAIL_REG, row[2]):
+                if not re.fullmatch(EMAIL_REG, row[3]):
                     print(f"[W] Invalid email detected: {row[2]}, proceeding anyway...")
                 
-                print(f"Adding {row[0]} {row[1]} ({row[2]}) to the allowed participants")
+                print(f"Adding {row[1]} {row[2]} ({row[3]}) to the allowed participants")
                 AllowedParticipant.objects.create(email=row[2])
