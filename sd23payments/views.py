@@ -93,7 +93,7 @@ class StripeCheckoutCompleted(View):
             context={
                 'host': settings.HOST,
                 'participant': order.participant,
-                'CODE': order.id
+                'CODE': order.sd_order_id[27:]
             },
             priority='now'
         )
