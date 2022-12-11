@@ -121,7 +121,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         return phone
 
     def validate_dob(self, dob):
-        if dob < datetime.date.today() - relativedelta(years=18):
+        if dob >= datetime.date.today() - relativedelta(years=18):
             raise serializers.ValidationError(_("Participants must be at least 18 years old"))
         return dob
 
