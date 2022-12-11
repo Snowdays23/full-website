@@ -54,7 +54,7 @@ class CreateStripeCheckout(View):
             product_data={
                 "name": order_item.name
             }
-        ) for order_item in order.items]]
+        ) for order_item in order.items.all()]]
 
         session = stripe.checkout.Session.create(
             success_url=reverse("stripe-success", kwargs={
