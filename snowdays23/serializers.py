@@ -39,6 +39,11 @@ class EatingHabitsSerializer(serializers.ModelSerializer):
         model = EatingHabits
         fields = '__all__'
 
+    def validate(self, data):
+        if data['vegan']:
+            data['vegetarian'] = True
+        return data
+
 
 class UniversitySerializer(serializers.ModelSerializer):
     class Meta:
