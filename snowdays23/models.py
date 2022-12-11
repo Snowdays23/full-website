@@ -47,12 +47,12 @@ class University(models.Model):
 class Gear(models.Model):
     name = models.CharField(
         choices=[
-            ("ski", _("Sci")),
+            ("ski", _("Skii")),
             ("snowboard", _("Snowboard")),
-            ("helmet", _("Casco")),
-            ("poles", _("Racchette")),
-            ("skiboots", _("Scarponi da sci")),
-            ("snowboardboots", _("Scarponi da snowboard"))
+            ("helmet", _("Helmet")),
+            ("poles", _("Skii Poles")),
+            ("skiboots", _("Skii Boots")),
+            ("snowboardboots", _("Snowboard Boots"))
         ],
         max_length=16,
         default="ski",
