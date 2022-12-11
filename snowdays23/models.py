@@ -331,7 +331,7 @@ class Participant(models.Model):
         unique_together = ('university', 'student_nr')
 
 
-class AllowedParticipant(model.Model):
+class AllowedParticipant(models.Model):
     email = models.TextField(
         verbose_name=_("pre-registered email provided by guest uni")
     )
