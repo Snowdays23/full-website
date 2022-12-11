@@ -64,6 +64,8 @@ class CreateStripeCheckout(View):
             line_items=items,
             mode="payment"
         )
+        order.stripe_order_id = session.id
+        order.save()
 
         return redirect(session.url)
 
@@ -80,9 +82,11 @@ class StripeCheckoutCompleted(View):
         except:
             return redirect("not-found")
 
-        if session.status == "complete" or session.payment_status == "paid":
+        if not session.status == "complete" and not session.payment_status == "paid":
             return redirect("not-found")
 
+        order.status = "paid"
+        order.save()
         return redirect('/success-checkout')
 
 
