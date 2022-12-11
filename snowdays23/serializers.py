@@ -183,5 +183,6 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             'shoe_size',
             'helmet_size',
             'rented_gear',
+            'selected_sport',
             'policies'
         )

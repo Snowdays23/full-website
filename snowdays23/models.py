@@ -266,6 +266,17 @@ class Participant(models.Model):
         verbose_name=_("internal participant hosting this participant")
     )
 
+    selected_sport = models.CharField(
+        choices=[
+            ("ski", _("Skii")),
+            ("snowboard", _("Snowboard")),
+            ("none", _("None"))
+        ],
+        max_length=16,
+        verbose_name=_("selected sport during sign-up"),
+        default="none"
+    )
+
     rented_gear = models.ManyToManyField(
         Gear,
         blank=True,
@@ -318,3 +329,9 @@ class Participant(models.Model):
 
     class Meta:
         unique_together = ('university', 'student_nr')
+
+
+class AllowedParticipant(model.Model):
+    email = models.TextField(
+        verbose_name=_("pre-registered email provided by guest uni")
+    )
