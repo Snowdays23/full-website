@@ -1,10 +1,11 @@
-Hi {{participant.first_name}} {{participant.last_name}}!
+Ciao {{participant.first_name}} {{participant.last_name}},
 
-Welcome aboard the SnowDays 2023 squad! We can't wait to see you here in Bozen for the long-awaited next chapter of our games. The sign-up process is complete and all there's left for you to do is purchase the ticket that will secure your entrance and all the included benefits.
+Welcome aboard the Snowdays23 squad! We can't wait to see you here in Bozen for the long-awaited next chapter of our games. The sign-up process is complete and all there's left for you to do is purchase the ticket that will secure your entrance and all the included benefits.
 
-Before that, we kindly ask you to double-check the information you provided us. In case you made a mistake, please contact us so we can fix it before proceeding. Here is your data we currently have:
+This is a recap of the info you just inserted, in case you made a mistake, please contact us (at info@snowdays.it) so we can fix it before proceeding:
 
 - Full Name: {{participant.first_name}} {{participant.last_name}}
+- Gender: {{participant.gender}}
 - Date of Birth: {{participant.dob|date:"d/M/Y"}}
 - Phone Number: {{participant.phone}}
 - University: {{participant.university.name}}
@@ -15,6 +16,8 @@ You specified that you DO need accomodation arranged by us here in Bozen.
 {% else %}
 You specified that you DO NOT need accomodation arranged by us here in Bozen.
 {% endif %}
+
+Sports you would like to play during Snwowdays23: 
 
 Your details about rentals:
 {% if participant.height %}- Height in centimeters: {{participant.height}}{% else %}- No height specified{% endif %}
@@ -39,10 +42,25 @@ Click on the following link to get to our checkout page.
 
 Here it is: {{checkout_url}}
 
-If you have questions, doubts or problems during the checkout process, feel free to contact us at support@snowdays.it.
+We kindly ask you to proceed as soon as possible! Be aware that you need to pay within the <strong>28th December 2022 at midnight</strong>.
 
-The SnowDays23 team wishes you happy festivities and longs to see you all here in February!
+We cannot wait to have you here on the slopes in Bozen!
+
+Because remember, there are no days like Snowdays!
 
 Best
 
 SD23 team
+
+
+❄❄❄❄❄❄❄❄❄❄❄❄❄❄❄
+
+SNOWDAYS
+
+❄ Europe's biggest winter sports event organised by students for students ❄
+
+C5.06 - Universitätsplatz / Piazza Università, 1
+
+I - 39100 Bozen/Bolzano
+                    
+IG: @snowdays.bolzano
