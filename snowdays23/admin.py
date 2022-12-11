@@ -18,7 +18,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from snowdays23.models import Participant, University, Sport, MerchItem, EatingHabits, Gear
+from snowdays23.models import Participant, University, Sport, MerchItem, EatingHabits, Gear, AllowedParticipant
 
 
 def register(model, **kw):
@@ -42,6 +42,7 @@ register(Sport)
 register(Gear)
 register(MerchItem)
 register(EatingHabits)
+register(AllowedParticipant)
 
 
 class ParticipantAdmin(admin.ModelAdmin):
