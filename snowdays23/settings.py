@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import dj_database_url
+import datetime
 import os
 
 # Quick and dirty fix for outdated library (inlinecss)
@@ -111,7 +112,9 @@ DATABASES = {
 EMAIL_BACKEND = 'post_office.EmailBackend'
 
 POST_OFFICE = {
-    "DEFAULT_PRIORITY" : "medium"
+    "DEFAULT_PRIORITY" : "medium",
+    "MAX_RETRIES": 4,
+    "RETRY_INTERVAL": datetime.timedelta(minutes=15)
 }
 
 EMAIL_HOST = "smtps.aruba.it"
