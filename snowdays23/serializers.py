@@ -101,7 +101,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     email = serializers.CharField()
     eating_habits = EatingHabitsSerializer()
     university = serializers.CharField()
-    needs_rent = serializers.BooleanField()
+    needs_rent = serializers.BooleanField(write_only=True)
     rented_gear = GearSerializer(many=True)
     policies = PoliciesSerializer()
 
@@ -203,8 +203,3 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             'selected_sport',
             'policies'
         )
-        extra_kwargs = {
-            "needs_rent": {
-                "write_only": True
-            }
-        }
