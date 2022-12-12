@@ -142,6 +142,12 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         for i, gear in enumerate(rented_gear):
             if rented_gear.index(gear) != i:
                 raise serializers.ValidationError(_("Only one item per type can be selected for rental"))
+        if not data['selected_sport'] or data['selected_sport'] == "none":
+            data['rented_gear'] = []
+            data['height'] = None
+            data['weight'] = None
+            data['helmet_size'] = None
+            data['shoe_size'] = None
 
         return data
 
