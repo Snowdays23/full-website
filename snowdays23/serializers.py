@@ -203,3 +203,8 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             'selected_sport',
             'policies'
         )
+        extra_kwargs = {
+            "needs_rent": {
+                "write_only": True
+            }
+        }
