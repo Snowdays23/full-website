@@ -101,6 +101,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     email = serializers.CharField()
     eating_habits = EatingHabitsSerializer()
     university = serializers.CharField()
+    needs_rent = serializers.BooleanField()
     rented_gear = GearSerializer(many=True)
     policies = PoliciesSerializer()
 
@@ -142,7 +143,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         for i, gear in enumerate(rented_gear):
             if rented_gear.index(gear) != i:
                 raise serializers.ValidationError(_("Only one item per type can be selected for rental"))
-        if not data['selected_sport'] or data['selected_sport'] == "none":
+        if not data['needs_rent'] or not data['selected_sport'] or data['selected_sport'] == "none":
             data['rented_gear'] = []
             data['height'] = None
             data['weight'] = None
@@ -192,6 +193,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             'eating_habits',
             'additional_notes',
             'needs_accomodation',
+            'needs_rent',
             'height',
             'weight',
             'shoe_size',
