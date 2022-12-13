@@ -53,6 +53,8 @@ class Command(BaseCommand):
                             'host': settings.HOST
                         }
                     )
+                else:
+                    print(f"Invitation already sent to {p.email} and no resend specified, skipping...")
             i += 1
         print(f"{i} emails sent (or queued depending on default priority)")
         
