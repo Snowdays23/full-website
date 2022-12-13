@@ -49,7 +49,7 @@ class Command(BaseCommand):
                     continue
                 if not re.fullmatch(EMAIL_REG, row[3]):
                     if verbose:
-                        print(f"[W] Invalid email detected: {row[2]}, proceeding anyway...")
+                        print(f"[W] Invalid email detected: {row[3]}, proceeding anyway...")
                 
                 print(f"Adding {row[1]} {row[2]} ({row[3]}) to the allowed participants")
                 AllowedParticipant.objects.create(email=row[3])
