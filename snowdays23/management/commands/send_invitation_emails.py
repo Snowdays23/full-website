@@ -55,6 +55,6 @@ class Command(BaseCommand):
                     )
                 else:
                     print(f"Invitation already sent to {p.email} and no resend specified, skipping...")
-            i += 1
+            i += 1 if not sent or resend else 0
         print(f"{i} emails sent (or queued depending on default priority)")
         
