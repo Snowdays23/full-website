@@ -1,5 +1,5 @@
-# This file is part of the SnowDays23 project
-# Copyright (C) 2022 SnowDays
+# This file is part of the Snowdays23 project
+# Copyright (C) 2022 Snowdays
 # Author: Andrea Esposito <aespositox@gmail.com>
 
 # This program is free software: you can redistribute it and/or modify

@@ -1,5 +1,5 @@
-# This file is part of the SnowDays23 project
-# Copyright (C) 2022 SnowDays
+# This file is part of the Snowdays23 project
+# Copyright (C) 2022 Snowdays
 # Author: Andrea Esposito <aespositox@gmail.com>
 
 # This program is free software: you can redistribute it and/or modify
@@ -63,7 +63,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
         mail.send(
             participant.user.email,
-            "SnowDays <noreply@snowdays.it>",
+            "Snowdays <noreply@snowdays.it>",
             template="form-confirmation",
             context={
                 'host': settings.HOST,
@@ -71,6 +71,9 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 'checkout_url': reverse("stripe-checkout", kwargs={
                     "sd_order_id": order.sd_order_id
                 }, current_app="sd23payments")
+            },
+            headers={
+                'X-Image-Url': settings.HOST + "/static/logo192.png"
             },
             priority='now'
         )
