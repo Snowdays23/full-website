@@ -335,3 +335,6 @@ class AllowedParticipant(models.Model):
     email = models.TextField(
         verbose_name=_("pre-registered email provided by guest uni")
     )
+
+    def __str__(self):
+        return self.email
