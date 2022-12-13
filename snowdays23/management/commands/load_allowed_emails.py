@@ -19,13 +19,12 @@ import sys
 import csv
 import re
 from pathlib import Path
+from pyisemail import is_email
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from snowdays23.models import AllowedParticipant
-
-EMAIL_REG = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
 
 
 class Command(BaseCommand):
@@ -47,9 +46,8 @@ class Command(BaseCommand):
                     if verbose:
                         print("Invalid row, skipping...")
                     continue
-                if not re.fullmatch(EMAIL_REG, row[3]):
-                    if verbose:
-                        print(f"[W] Invalid email detected: {row[3]}, proceeding anyway...")
+                if not is_email(row[3]):
+                    print(f"[W] Invalid email detected: {row[3]}, proceeding anyway...")
                 
                 print(f"Adding {row[1]} {row[2]} ({row[3]}) to the allowed participants")
                 AllowedParticipant.objects.create(email=row[3])

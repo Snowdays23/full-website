@@ -11,3 +11,4 @@ whitenoise
 stripe
 django-inlinecss
 python-dateutil
+pyisemail
