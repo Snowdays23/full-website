@@ -18,31 +18,41 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from post_office import mail
+from post_office.models import Email
 
 from snowdays23.models import AllowedParticipant
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--dry-run', action='store_true')
+        parser.add_argument('--resend', action='store_true')
 
-    def handle(self, dry_run=False, *args, **kwargs):
+    def handle(self, dry_run=False, resend=False, *args, **kwargs):
         allowed = AllowedParticipant.objects.all()
         i = 0
         for p in allowed:
+            sent = Email.objects.filter(
+                to=p.email,
+                template__name="form-invitation",
+                status=0
+            ).exists()
             if dry_run:
+                if sent:
+                    if resend:
+                        print(f"Invitation already sent to {p.email}, but resend specified: resending...")
+                    else:
+                        print(f"Invitation already sent to {p.email}, skipping...")
                 print(f"Sending invitation email to {p.email}...")
             else:
-                mail.send(
-                    p.email,
-                    "Snowdays <noreply@snowdays.it>",
-                    template="form-invitation",
-                    context={
-                        'host': settings.HOST
-                    },
-                    headers={
-                        'X-Image-Url': settings.HOST + "/static/logo192.png"
-                    }
-                )
+                if not sent or resend:
+                    mail.send(
+                        p.email,
+                        "Snowdays <noreply@snowdays.it>",
+                        template="form-invitation",
+                        context={
+                            'host': settings.HOST
+                        }
+                    )
             i += 1
         print(f"{i} emails sent (or queued depending on default priority)")
         

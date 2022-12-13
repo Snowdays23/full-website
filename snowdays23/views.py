@@ -71,10 +71,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 'checkout_url': reverse("stripe-checkout", kwargs={
                     "sd_order_id": order.sd_order_id
                 }, current_app="sd23payments")
-            },
-            headers={
-                'X-Image-Url': settings.HOST + "/static/logo192.png"
-            },
+            }
             priority='now'
         )
 
