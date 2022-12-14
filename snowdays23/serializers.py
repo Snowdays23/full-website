@@ -116,7 +116,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     
     def validate_email(self, email):
         if settings.STRICT_ALLOWED_EMAIL_CHECK:
-            if not AllowedParticipant.objects.filter(email=email).exists():
+            if not AllowedParticipant.objects.filter(email__iexact=email).exists():
                 raise serializers.ValidationError(_("Email is not an allowed participant"))
 
         if User.objects.filter(email=email).exists():
