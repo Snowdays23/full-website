@@ -42,7 +42,8 @@ class Command(BaseCommand):
                         print(f"Invitation already sent to {p.email}, but resend specified: resending...")
                     else:
                         print(f"Invitation already sent to {p.email}, skipping...")
-                print(f"Sending invitation email to {p.email}...")
+                else:
+                    print(f"Sending invitation email to {p.email}...")
             else:
                 if not sent or resend:
                     mail.send(
