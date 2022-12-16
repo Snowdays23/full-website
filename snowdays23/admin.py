@@ -44,7 +44,7 @@ register(MerchItem)
 register(EatingHabits)
 register(
     AllowedParticipant,
-    search_fields=("email__icontains")
+    search_fields=("email__icontains", )
 )
 
 
