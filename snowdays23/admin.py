@@ -42,12 +42,15 @@ register(Sport)
 register(Gear)
 register(MerchItem)
 register(EatingHabits)
-register(AllowedParticipant)
+register(
+    AllowedParticipant,
+    search_fields=("email__icontains")
+)
 
 
 class ParticipantAdmin(admin.ModelAdmin):
     list_display=("first_name", "last_name", "email", "university", "gear")
-    search_fields = ("user__last_name__startswith", )
+    search_fields = ("user__last_name__startswith", "user__email__icontains", )
 
     def gear(self, obj):
         return format_html(

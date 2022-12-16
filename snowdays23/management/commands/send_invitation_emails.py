@@ -32,7 +32,7 @@ class Command(BaseCommand):
         i = 0
         for p in allowed:
             sent = Email.objects.filter(
-                to=p.email,
+                to__iexact=p.email,
                 template__name="form-invitation",
                 status=0
             ).exists()
