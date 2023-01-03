@@ -41,8 +41,12 @@ class CreateStripeCheckout(View):
         except Order.DoesNotExist:
             return redirect("not-found")
 
-        if order.stripe_order_id and order.status == "paid":
+        if order.status == "paid":
             return redirect("not-found")
+        
+        if order.stripe_order_id:
+            # TODO: alert the user: only the latest payment session will succeed
+            print(f"Order already has a stripe checkout session associated to it, continuing...")
 
         items = [{
             "price": item.id,
@@ -63,7 +67,10 @@ class CreateStripeCheckout(View):
                 "sd_order_id": order.sd_order_id
             }),
             line_items=items,
-            mode="payment"
+            mode="payment",
+            payment_intent_data={
+                "capture_method": "manual"
+            }            
         )
         order.stripe_order_id = session.id
         order.save()
@@ -80,12 +87,33 @@ class StripeCheckoutCompleted(View):
         
         try:
             session = stripe.checkout.Session.retrieve(order.stripe_order_id)
-        except:
-            return redirect("not-found")
-
-        if not session.status == "complete" and not session.payment_status == "paid":
+            if not session.payment_intent:
+                raise ValueError("No PaymentIntent associated with this checkout session")
+            payment_intent = stripe.payment_intent.PaymentIntent.retrieve(session.payment_intent)
+        except Exception as e:
+            # TODO: alert the user: error retrieving checkout session or payment intent, 
+            # something went wrong and the user needs to start the payment process over
+            print(f"Could not retrieve payment status: {e!r}")
             return redirect("not-found")
         
+        print(payment_intent)
+
+        if not payment_intent.status == "requires_capture":
+            # TODO: alert the user: payment not ready to be captured, start over
+            print(f"PaymentIntent in invalid status to be captured: {payment_intent.status}")
+            return redirect("not-found")
+
+        try:
+            capture = payment_intent.capture()
+            print("captured")
+        except Exception as e:
+            # TODO: alert the user: payment could not be captured, contact team
+            print(f"Could not capture payment: {e!r}")
+            return redirect("not-found")
+        
+        order.status = "paid"
+        order.save()
+
         mail.send(
             order.participant.user.email,
             "Snowdays <noreply@snowdays.it>",
@@ -97,9 +125,6 @@ class StripeCheckoutCompleted(View):
             },
             priority='now'
         )
-
-        order.status = "paid"
-        order.save()
         return redirect('/success-checkout')
 
 

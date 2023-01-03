@@ -159,6 +159,121 @@ class Policies(models.Model):
     )
 
 
+class Residence(models.Model):
+    address = models.TextField(
+        verbose_name=_("street name")
+    )
+
+    street_nr = models.CharField(
+        max_length=6,
+        verbose_name=_("street number")
+    )
+
+    is_college = models.BooleanField(
+        verbose_name=_("location is a college"),
+        default=False
+    )
+
+    college_slug = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True,
+        verbose_name=_("college id")
+    )
+
+    college_name = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True,
+        verbose_name=_("college full name")
+    )
+
+    max_guests = models.IntegerField(
+        verbose_name=_("maximum number of guests this location can hold at once"),
+        default=-1
+    )
+
+    def __str__(self):
+        if self.is_college:
+            return self.name
+        return f"{self.address}, {self.street_nr}"
+
+
+class InternalUserType(models.Model):
+    name = models.CharField(
+        choices=[
+            ("full", "Full Price"),
+            ("helper", "Helper"),
+            ("host", "Host"),
+            ("host+helper", "Host and Helper")
+        ],
+        max_length=16,
+        verbose_name=_("user type")
+    )
+
+    guests = models.IntegerField(
+        default=0,
+        verbose_name=_("external guests hosted")
+    )
+
+    """
+        Price table for internal participants, based on availability for helping with
+        organizational tasks and/or hosting external participants.
+
+        Full price for internals: €160.0
+        Helper price: €130.0
+        Host price (one guest): €130.0
+        Helper + Host price (one guest): €100.0
+        Host price (two guests): €110.0
+        Discount for each additional guest (after 2nd): €10.0
+    """
+    @property
+    def get_ticket_price(self):
+        price = {
+            "full": 16000, # Full Price
+            "helper": 13000, # Helper
+            "host": 13000, # Host (1 external)
+            "host+helper": 10000 # Helper + Host (1 external)
+        }[self.name]
+        if self.guests > 1:
+            # Discount for 2nd external hosted
+            price -= 2000
+        # Discount for each additional external participant hosted (after the 2nd)
+        return price - max(0, self.guests - 2) * 1000
+
+
+    """
+        Enrolment limits for internal participants based on user type.
+
+        Full: no limit
+        Hosts: 205
+        Helpers: 65
+    """
+    def can_enrol_type(type):
+        limits = {
+            "helper": 65,
+            "host": 205
+        }
+        hosts_helpers = Participant.objects.filter(
+            internal_user_type__name="host+helper"
+        ).count()
+        helpers = Participant.objects.filter(
+            internal_user_type__name="helper"
+        ).count() + hosts_helpers
+        hosts = Participant.objects.filter(
+            internal_user_type__name="host"
+        ).count() + hosts_helpers
+
+        if type == "helper":
+            return helpers < limits["helper"]
+        elif type == "host":
+            return host < limits["host"]
+        elif type == "host+helper":
+            return helpers < limits["helper"] and hosts < limits["host"]
+        else:
+            return True
+
+
 class Participant(models.Model):
     user = models.OneToOneField(
         "auth.User",
@@ -253,6 +368,14 @@ class Participant(models.Model):
         verbose_name=_("flag indicating whether this participant belongs to the host university")
     )
 
+    internal_type = models.ForeignKey(
+        InternalUserType,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name=_("internal user type")
+    )
+
     needs_accomodation = models.BooleanField(
         default=False,
         verbose_name=_("flag indicating whether this participant needs a schlafi")
@@ -289,6 +412,21 @@ class Participant(models.Model):
         verbose_name=_("status of sign-up policies"),
         null=True,
         blank=True
+    )
+
+    residence = models.ForeignKey(
+        Residence,
+        on_delete=models.PROTECT,
+        verbose_name=_("host location"),
+        null=True,
+        blank=True
+    )
+
+    room_nr = models.CharField(
+        max_length=8,
+        null=True,
+        blank=True,
+        verbose_name=_("host college room number")
     )
 
     def __str__(self):
