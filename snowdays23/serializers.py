@@ -25,7 +25,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
-from snowdays23.models import Participant, AllowedParticipant, EatingHabits, University, Gear, Policies
+from snowdays23.models import Participant, AllowedParticipant, EatingHabits, University, Gear, Policies, Residence
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -95,12 +95,47 @@ class PoliciesSerializer(serializers.ModelSerializer):
         return data
 
 
+class ResidenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Residence
+        fields = [
+            'address',
+            'street_nr',
+            'city',
+            'postal_code',
+            'is_college',
+            'college_slug'
+        ]
+    
+    def validate(self, data):
+        if data['city'].lower() not in [
+            "bolzano", 
+            "bozen", 
+            "bolzano bozen", 
+            "bolzano/bozen", 
+            "bolzano-bozen"
+        ] or data['postal_code'] != "39100":
+            raise serializers.ValidationError(_("Host participants must be located in Bolzano/Bozen"))
+        if data['is_college']:
+            try:
+                college = Residence.objects.get(college_slug=data['college_slug'])
+            except Residence.DoesNotExist:
+                raise serializers.ValidationError(_("Invalid college"))
+            data['address'] = college.address
+            data['street_nr'] = college.street_nr
+            data['postal_code'] = college.postal_code
+            data['city'] = college.city
+            data['college_name'] = college.college_name
+            data['max_guests'] = college.max_guests
+        return data
+
+
 class NewParticipantSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     email = serializers.CharField()
     eating_habits = EatingHabitsSerializer()
-    university = serializers.CharField()
+    university = serializers.CharField(required=False)
     needs_rent = serializers.BooleanField(write_only=True)
     rented_gear = GearSerializer(many=True)
     policies = PoliciesSerializer()
@@ -115,11 +150,11 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         return slug
     
     def validate_email(self, email):
-        if settings.STRICT_ALLOWED_EMAIL_CHECK:
+        if settings.STRICT_ALLOWED_EMAIL_CHECK and not email.endswith("@unibz.it"):
             if not AllowedParticipant.objects.filter(email__iexact=email).exists():
                 raise serializers.ValidationError(_("Email is not an allowed participant"))
 
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError(_("Email is already registered"))
         return email
 
@@ -138,7 +173,13 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         student_nr = data.get('student_nr')
         if Participant.objects.filter(university__slug=university_code, student_nr=student_nr).exists():
             raise serializers.ValidationError(_("Duplicate student number within the same university"))
-        
+
+        email = data.get('email')
+        if university_code == "unibz":
+            if not email.endswith("@unibz.it"):
+                raise serializers.ValidationError(_("Internal participants must register with unibz email address"))
+            data['internal'] = True       
+
         rented_gear = data['rented_gear']
         for i, gear in enumerate(rented_gear):
             if rented_gear.index(gear) != i:
@@ -152,11 +193,15 @@ class NewParticipantSerializer(serializers.ModelSerializer):
 
         return data
 
+    def validate_residence(self, residence):
+        return residence
+
     def create(self, validated_data):
         first_name = validated_data.pop('first_name')
         last_name = validated_data.pop('last_name')
         email = validated_data.pop('email')
         university = University.objects.get(slug=validated_data.pop('university'))
+        residence = Residence.objects.create(**validated_data.pop('residence'))
         eating_habits = EatingHabits.objects.create(**validated_data.pop('eating_habits'))
         rented_gear = validated_data.pop('rented_gear')
         needs_rent = validated_data.pop('needs_rent')
@@ -191,6 +236,8 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             'student_nr',
             'dob',
             'phone',
+            'residence',
+            'room_nr',
             'eating_habits',
             'additional_notes',
             'needs_accomodation',

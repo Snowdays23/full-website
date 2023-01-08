@@ -164,6 +164,16 @@ class Residence(models.Model):
         verbose_name=_("street name")
     )
 
+    city = models.CharField(
+        max_length=32,
+        verbose_name=_("city or town")
+    )
+
+    postal_code = models.CharField(
+        max_length=8,
+        verbose_name=_("postal code")
+    )
+
     street_nr = models.CharField(
         max_length=6,
         verbose_name=_("street number")
