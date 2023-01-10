@@ -50,7 +50,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 [], 
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        return super().get(self, request, **kwargs)
+        return super().list(self, request, **kwargs)
 
     def perform_create(self, serializer):
         participant = serializer.save()
