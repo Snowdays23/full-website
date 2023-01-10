@@ -92,7 +92,9 @@ class GetParticipantByBraceletId(APIView):
 class AssignBraceletToParticipant(APIView):
     def post(self, request, pk=None, uid=None):
         if not pk or not uid:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "detail": _("Missing parameters")
+            }, status=status.HTTP_400_BAD_REQUEST)
         try:
             participant = Participant.objects.get(pk=pk)
         except Participant.DoesNotExist:
