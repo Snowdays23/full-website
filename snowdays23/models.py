@@ -200,13 +200,13 @@ class Residence(models.Model):
 
     max_guests = models.IntegerField(
         verbose_name=_("maximum number of guests this location can hold at once"),
-        default=-1
+        default=4
     )
 
     def __str__(self):
         if self.is_college:
-            return self.name
-        return f"{self.address}, {self.street_nr}"
+            return self.college_name
+        return f"{self.address}, {self.street_nr} ({self.city} {self.postal_code})"
 
 
 class InternalUserType(models.Model):
@@ -265,19 +265,19 @@ class InternalUserType(models.Model):
             "host": 205
         }
         hosts_helpers = Participant.objects.filter(
-            internal_user_type__name="host+helper"
+            internal_type__name="host+helper"
         ).count()
         helpers = Participant.objects.filter(
-            internal_user_type__name="helper"
+            internal_type__name="helper"
         ).count() + hosts_helpers
         hosts = Participant.objects.filter(
-            internal_user_type__name="host"
+            internal_type__name="host"
         ).count() + hosts_helpers
 
         if type == "helper":
             return helpers < limits["helper"]
         elif type == "host":
-            return host < limits["host"]
+            return hosts < limits["host"]
         elif type == "host+helper":
             return helpers < limits["helper"] and hosts < limits["host"]
         else:

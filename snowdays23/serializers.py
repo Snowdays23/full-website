@@ -25,7 +25,8 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
-from snowdays23.models import Participant, AllowedParticipant, EatingHabits, University, Gear, Policies, Residence
+from snowdays23.models import Participant, AllowedParticipant, EatingHabits, University, Gear, Policies, Residence, InternalUserType
+from sd23payments.models import Order
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -135,10 +136,14 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField()
     email = serializers.CharField()
     eating_habits = EatingHabitsSerializer()
-    university = serializers.CharField(required=False)
+    university = serializers.CharField()
     needs_rent = serializers.BooleanField(write_only=True)
+    residence = ResidenceSerializer(required=False)
     rented_gear = GearSerializer(many=True)
     policies = PoliciesSerializer()
+    is_helper = serializers.BooleanField(required=False)
+    is_host = serializers.BooleanField(required=False)
+    guests = serializers.IntegerField(required=False)
 
     def validate_university(self, slug):
         if not slug:
@@ -150,11 +155,16 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         return slug
     
     def validate_email(self, email):
-        if settings.STRICT_ALLOWED_EMAIL_CHECK and not email.endswith("@unibz.it"):
+        unibz = email.lower().endswith("@unibz.it")
+        if settings.STRICT_ALLOWED_EMAIL_CHECK and not unibz:
             if not AllowedParticipant.objects.filter(email__iexact=email).exists():
                 raise serializers.ValidationError(_("Email is not an allowed participant"))
 
-        if User.objects.filter(email__iexact=email).exists():
+        if unibz:
+            o = Order.objects.filter(participant__user__email__iexact=email)
+            if o.exists() and o.first().status != "pending":
+                raise serializers.ValidationError(_("Email is already registered"))
+        elif User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError(_("Email is already registered"))
         return email
 
@@ -191,21 +201,61 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             data['helmet_size'] = None
             data['shoe_size'] = None
 
-        return data
+        if data['internal']:
+            user_types = []
+            is_host = data['is_host']
+            is_helper = data['is_helper']
+            can_enrol_helpers = InternalUserType.can_enrol_type("helper")
+            can_enrol_hosts = InternalUserType.can_enrol_type("host")
+            if is_host:
+                if not can_enrol_hosts:
+                    raise serializers.ValidationError(_("No host slots left"))
+                user_types.append("host")
+            if is_helper:
+                if not can_enrol_helpers:
+                    raise serializers.ValidationError(_("No helper slots left"))
+                user_types.append("helper")
+            if not is_host and not is_helper and (can_enrol_hosts or can_enrol_helpers):
+                raise serializers.ValidationError(_("Only enrolling helpers and hosts"))
+            
+            user_type = "+".join(user_types) if len(user_types) > 0 else "full"
+            
+            guests = data.pop('guests', 0)
+            if data['residence']['is_college']:
+                college = Residence.objects.get(college_slug=data['residence']['college_slug'])
+                if guests > college.max_guests:
+                    raise serializers.ValidationError(_("Too many guests for the specified residence: check the rules!"))
+            else:
+                del data['residence']['max_guests']
+            data['internal_user_type'] = {
+                "name": user_type,
+                "guests": guests
+            }
 
-    def validate_residence(self, residence):
-        return residence
+        return data
 
     def create(self, validated_data):
         first_name = validated_data.pop('first_name')
         last_name = validated_data.pop('last_name')
         email = validated_data.pop('email')
         university = University.objects.get(slug=validated_data.pop('university'))
-        residence = Residence.objects.create(**validated_data.pop('residence'))
         eating_habits = EatingHabits.objects.create(**validated_data.pop('eating_habits'))
         rented_gear = validated_data.pop('rented_gear')
         needs_rent = validated_data.pop('needs_rent')
         policies = Policies.objects.create(**validated_data.pop('policies'))
+        is_helper = validated_data.pop('is_helper')
+        is_host = validated_data.pop('is_host')
+        residence = validated_data.pop('residence')
+        if not is_host:
+            residence = None
+        elif residence['is_college']:
+            residence = Residence.objects.get(college_slug=residence['college_slug'])
+        else:
+            residence = Residence.objects.create(**residence)
+        if "internal_user_type" in validated_data:
+            internal_user_type = InternalUserType.objects.create(**validated_data.pop('internal_user_type'))
+        else:
+            internal_user_type = None
         participant = Participant.objects.create(
             user=User.objects.create(
                 first_name=first_name,
@@ -216,12 +266,15 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             university=university,
             eating_habits=eating_habits,
             policies=policies,
+            internal_type=internal_user_type,
+            residence=residence,
             **validated_data
         )
         gear_items = Gear.objects.bulk_create([
             Gear(**gear) for gear in rented_gear
         ])
         participant.rented_gear.set(gear_items)
+
         participant.save()
         return participant
 
@@ -248,5 +301,8 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             'helmet_size',
             'rented_gear',
             'selected_sport',
-            'policies'
+            'policies',
+            'is_helper',
+            'is_host',
+            'guests'
         )

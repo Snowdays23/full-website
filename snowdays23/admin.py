@@ -18,7 +18,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from snowdays23.models import Participant, University, Sport, MerchItem, EatingHabits, Gear, AllowedParticipant
+from snowdays23.models import Participant, University, Sport, MerchItem, EatingHabits, Gear, AllowedParticipant, InternalUserType, Residence
 
 
 def register(model, **kw):
@@ -42,6 +42,8 @@ register(Sport)
 register(Gear)
 register(MerchItem)
 register(EatingHabits)
+register(InternalUserType)
+register(Residence)
 register(
     AllowedParticipant,
     search_fields=("email__icontains", )
