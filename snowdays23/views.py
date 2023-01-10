@@ -45,11 +45,11 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         return ParticipantSerializer
 
     def list(self, request, **kwargs):
-        if not request.user.is_authenticated or not request.user.is_staff:
-            return Response(
-                [], 
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+        # if not request.user.is_authenticated or not request.user.is_staff:
+        #     return Response(
+        #         [], 
+        #         status=status.HTTP_401_UNAUTHORIZED
+        #     )
         return super().list(self, request, **kwargs)
 
     def perform_create(self, serializer):
@@ -112,4 +112,6 @@ class AssignBraceletToParticipant(APIView):
         participant.bracelet_id = uid
         participant.save()
 
-        return Response(status=status.HTTP_200_OK)
+        return Response({
+            "detail": _("Bracelet assigned successfully")
+        }, status=status.HTTP_200_OK)
