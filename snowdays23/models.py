@@ -215,7 +215,8 @@ class InternalUserType(models.Model):
             ("full", "Full Price"),
             ("helper", "Helper"),
             ("host", "Host"),
-            ("host+helper", "Host and Helper")
+            ("host+helper", "Host and Helper"),
+            ("alumnus", "Alumnus")
         ],
         max_length=16,
         verbose_name=_("user type")
@@ -282,6 +283,11 @@ class InternalUserType(models.Model):
             return helpers < limits["helper"] and hosts < limits["host"]
         else:
             return True
+
+    def __str__(self):
+        if self.guests > 0:
+            return f"{self.name} (hosting {self.guests} people)"
+        return f"{self.name}"
 
 
 class Participant(models.Model):
