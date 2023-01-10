@@ -96,7 +96,9 @@ class AssignBraceletToParticipant(APIView):
         try:
             participant = Participant.objects.get(pk=pk)
         except Participant.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                "detail": _("Invalid participant")
+            }, status=status.HTTP_404_NOT_FOUND)
         
         if not re.match(settings.BRACELET_ID_REGEX, uid):
             return Response({
