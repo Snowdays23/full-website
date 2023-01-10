@@ -173,8 +173,8 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# Regex to validate bracelet ID (Mifare Ultralight 8 byte UID, hex)
-BRACELET_ID_REGEX = "[0-9_a-f]{16}"
+# Regex to validate bracelet ID (Mifare Ultralight 7/8 byte UID, hex)
+BRACELET_ID_REGEX = "[0-9_a-f]{14,16}"
 
 # Regex to validate phone numbers (for this use case): +<prefix 2 or 3 digits long> <number 3 to 13 digits long>
 PHONE_NUMBER_REGEX = "\+[0-9]{2,3} [0-9]{3,13}"
