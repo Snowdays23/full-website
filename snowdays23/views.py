@@ -99,7 +99,9 @@ class AssignBraceletToParticipant(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         if not re.match(settings.BRACELET_ID_REGEX, uid):
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "detail": _("Invalid UID")
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         another = Participant.objects.filter(bracelet_id=uid)
         if another.exists():
