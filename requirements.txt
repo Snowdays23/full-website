@@ -12,3 +12,4 @@ stripe
 django-inlinecss
 python-dateutil
 pyisemail
+gunicorn
