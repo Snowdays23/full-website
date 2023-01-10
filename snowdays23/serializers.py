@@ -226,7 +226,10 @@ class NewParticipantSerializer(serializers.ModelSerializer):
                 if guests > college.max_guests:
                     raise serializers.ValidationError(_("Too many guests for the specified residence: check the rules!"))
             else:
-                del data['residence']['max_guests']
+                # maximum number of guests for any residence must not be selectable by the user:
+                # drop it if present in the request
+                if "max_guests" in data['residence']:
+                    del data['residence']['max_guests']
             data['internal_user_type'] = {
                 "name": user_type,
                 "guests": guests
@@ -235,9 +238,11 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        email = validated_data.pop('email')
+        if Participant.objects.filter(user__email__iexact=email).exists():
+            Participant.objects.get(user__email__iexact=email).user.delete()
         first_name = validated_data.pop('first_name')
         last_name = validated_data.pop('last_name')
-        email = validated_data.pop('email')
         university = University.objects.get(slug=validated_data.pop('university'))
         eating_habits = EatingHabits.objects.create(**validated_data.pop('eating_habits'))
         rented_gear = validated_data.pop('rented_gear')
@@ -256,20 +261,41 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             internal_user_type = InternalUserType.objects.create(**validated_data.pop('internal_user_type'))
         else:
             internal_user_type = None
-        participant = Participant.objects.create(
-            user=User.objects.create(
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                username=email
-            ),
-            university=university,
-            eating_habits=eating_habits,
-            policies=policies,
-            internal_type=internal_user_type,
-            residence=residence,
-            **validated_data
+        
+        participant, created = Participant.objects.update_or_create(
+            user__email__iexact=email,
+            defaults={
+                'user': User.objects.update_or_create(
+                    email__iexact=email, 
+                    defaults={
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'email': email,
+                        'username': email
+                    }
+                )[0],
+                'university': university,
+                'eating_habits': eating_habits,
+                'policies': policies,
+                'internal_type': internal_user_type,
+                'residence': residence,
+                **validated_data
+            }
         )
+        # participant = Participant.objects.create(
+        #     user=User.objects.create(
+        #         first_name=first_name,
+        #         last_name=last_name,
+        #         email=email,
+        #         username=email
+        #     ),
+        #     university=university,
+        #     eating_habits=eating_habits,
+        #     policies=policies,
+        #     internal_type=internal_user_type,
+        #     residence=residence,
+        #     **validated_data
+        # )
         gear_items = Gear.objects.bulk_create([
             Gear(**gear) for gear in rented_gear
         ])
