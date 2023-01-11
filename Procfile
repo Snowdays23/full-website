@@ -1,1 +1,1 @@
-web: curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && apt install -y nodejs npm && cd frontend && npm install && npm run build && cd .. && python manage.py makemigrations && python manage.py migrate --run-syncdb && python manage.py collectstatic && gunicorn snowdays23.wsgi
+web: cd frontend && npm install && npm run build && cd .. && python manage.py makemigrations && python manage.py migrate --run-syncdb && python manage.py collectstatic && gunicorn snowdays23.wsgi
