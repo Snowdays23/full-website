@@ -188,7 +188,9 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         if university_code == "unibz":
             if not email.endswith("@unibz.it"):
                 raise serializers.ValidationError(_("Internal participants must register with unibz email address"))
-            data['internal'] = True       
+            data['internal'] = True
+        else:
+            data['internal'] = False 
 
         rented_gear = data['rented_gear']
         for i, gear in enumerate(rented_gear):
@@ -234,13 +236,19 @@ class NewParticipantSerializer(serializers.ModelSerializer):
                 "name": user_type,
                 "guests": guests
             }
+        else:
+            # Remove (reset) fields allowed on internal participants only
+            data['is_helper'] = False
+            data['is_host'] = False
+            data['residence'] = None
+            data['room_nr'] = None
+            if "guests" in data:
+                del data['guests']
 
         return data
 
     def create(self, validated_data):
         email = validated_data.pop('email')
-        if Participant.objects.filter(user__email__iexact=email).exists():
-            Participant.objects.get(user__email__iexact=email).user.delete()
         first_name = validated_data.pop('first_name')
         last_name = validated_data.pop('last_name')
         university = University.objects.get(slug=validated_data.pop('university'))
@@ -248,9 +256,9 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         rented_gear = validated_data.pop('rented_gear')
         needs_rent = validated_data.pop('needs_rent')
         policies = Policies.objects.create(**validated_data.pop('policies'))
-        is_helper = validated_data.pop('is_helper')
-        is_host = validated_data.pop('is_host')
-        residence = validated_data.pop('residence')
+        is_helper = validated_data.pop('is_helper', False)
+        is_host = validated_data.pop('is_host', False)
+        residence = validated_data.pop('residence', None)
         if not is_host:
             residence = None
         elif residence['is_college']:
