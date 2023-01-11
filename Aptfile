@@ -1,4 +1,3 @@
 :repo:deb [trusted=yes] https://deb.nodesource.com/node_18.x jammy main
 
 nodejs
-npm
