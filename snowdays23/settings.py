@@ -191,6 +191,11 @@ if "DATABASE_URL" in os.environ:
     # Receive Stripe API secret as environment variable
     STRIPE_SECRET_API_KEY = os.environ["STRIPE_SK"]
 
+    EMAIL_HOST_USER = os.environ["ARUBA_EMAIL_USER"]
+    EMAIL_HOST_PASSWORD = os.environ["ARUBA_EMAIL_PASSWORD"]
+
+    HOST = os.environ["HOST"]
+
 
 STRIPE_CHECKOUT_SUCCESS_URL = "http://localhost:8000/api/payments/order/%s/stripe/success"
 STRIPE_CHECKOUT_CANCEL_URL = "http://localhost:8000/api/payments/order/%s/stripe/cancel"
