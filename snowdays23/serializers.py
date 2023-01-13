@@ -155,7 +155,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         return slug
     
     def validate_email(self, email):
-        unibz = email.lower().endswith("@unibz.it")
+        unibz = email.lower().endswith("@unibz.it") or email.lower().endswith("@cons.bz.it")
         if settings.STRICT_ALLOWED_EMAIL_CHECK and not unibz:
             if not AllowedParticipant.objects.filter(email__iexact=email).exists():
                 raise serializers.ValidationError(_("Email is not an allowed participant"))
@@ -186,7 +186,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
 
         email = data.get('email')
         if university_code == "unibz":
-            if not email.endswith("@unibz.it"):
+            if not email.endswith("@unibz.it") and not email.endswith("@cons.bz.it"):
                 raise serializers.ValidationError(_("Internal participants must register with unibz email address"))
             data['internal'] = True
         else:
