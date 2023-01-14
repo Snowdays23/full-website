@@ -234,6 +234,8 @@ class NewParticipantSerializer(serializers.ModelSerializer):
                 if guests > college.max_guests:
                     raise serializers.ValidationError(_("Too many guests for the specified residence: check the rules!"))
             else:
+                if guests > Residence.max_guests.field.default:
+                    raise serializers.ValidationError(_("Too many guests for the specified residence: check the rules!"))
                 # maximum number of guests for any residence must not be selectable by the user:
                 # drop it if present in the request
                 if "max_guests" in data['residence']:

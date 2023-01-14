@@ -386,7 +386,7 @@ class Participant(models.Model):
 
     internal_type = models.ForeignKey(
         InternalUserType,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name=_("internal user type")
@@ -501,3 +501,6 @@ class AllowedAlumnus(models.Model):
 
     def __str__(self):
         return self.email
+    
+    class Meta:
+        verbose_name_plural = _("Allowed alumni")
