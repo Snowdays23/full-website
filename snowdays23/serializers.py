@@ -22,6 +22,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Sum
 
 from rest_framework import serializers
 
@@ -236,7 +237,10 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             
             if data['residence']['is_college']:
                 college = Residence.objects.get(college_slug=data['residence']['college_slug'])
-                if guests > college.max_guests:
+                hosted_in_college = Participant.objects.filter(residence=college, internal=True).aggregate(Sum('internal_type__guests'))['internal_type__guests__sum']
+                if not hosted_in_college:
+                    hosted_in_college = 0
+                if guests + hosted_in_college > college.max_guests:
                     raise serializers.ValidationError(_("Too many guests for the specified residence: check the rules!"))
             else:
                 if guests > Residence.max_guests.field.default:

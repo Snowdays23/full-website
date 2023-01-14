@@ -373,7 +373,7 @@ class Participant(models.Model):
 
     eating_habits = models.ForeignKey(
         EatingHabits,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name=_("special eating needs declared by this participant")
     )
 
@@ -436,7 +436,7 @@ class Participant(models.Model):
 
     residence = models.ForeignKey(
         Residence,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         verbose_name=_("host location"),
         null=True,
         blank=True
@@ -485,6 +485,8 @@ class Participant(models.Model):
         self.rented_gear.clear()
         if self.internal_type:
             self.internal_type.delete()
+        if self.residence and not self.residence.is_college:
+            self.residence.delete()
         super().delete(**kwargs)
 
     class Meta:
