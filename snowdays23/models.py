@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -208,6 +208,12 @@ class Residence(models.Model):
             return self.college_name
         return f"{self.address}, {self.street_nr} ({self.city} {self.postal_code})"
 
+    @property
+    def full_address(self):
+        if self.is_college:
+            return f"Student dorm {self.college_name} ({self.address} {self.street_nr})"
+        return f"{self.address} {self.street_nr}, {self.city} {self.postal_code}"
+
 
 class InternalUserType(models.Model):
     name = models.CharField(
@@ -242,6 +248,7 @@ class InternalUserType(models.Model):
     def get_ticket_price(self):
         price = {
             "full": 16000, # Full Price
+            "alumnus": 16000, # Alumni
             "helper": 13000, # Helper
             "host": 13000, # Host (1 external)
             "host+helper": 10000 # Helper + Host (1 external)
@@ -260,27 +267,24 @@ class InternalUserType(models.Model):
         Hosts: 205
         Helpers: 65
     """
-    def can_enrol_type(type):
+    def can_enrol_type(type, count=1):
         limits = {
             "helper": 65,
             "host": 205
         }
-        hosts_helpers = Participant.objects.filter(
-            internal_type__name="host+helper"
-        ).count()
         helpers = Participant.objects.filter(
-            internal_type__name="helper"
-        ).count() + hosts_helpers
-        hosts = Participant.objects.filter(
-            internal_type__name="host"
-        ).count() + hosts_helpers
+            internal_type__name__icontains="helper"
+        ).count()
+        hosts = InternalUserType.objects.aggregate(Sum('guests'))['guests__sum']
+        if not hosts:
+            hosts = 0
 
         if type == "helper":
-            return helpers < limits["helper"]
+            return helpers + count <= limits["helper"]
         elif type == "host":
-            return hosts < limits["host"]
+            return hosts + count <= limits["host"]
         elif type == "host+helper":
-            return helpers < limits["helper"] and hosts < limits["host"]
+            return helpers + count <= limits["helper"] and hosts + count <= limits["host"]
         else:
             return True
 
@@ -386,7 +390,7 @@ class Participant(models.Model):
 
     internal_type = models.ForeignKey(
         InternalUserType,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         verbose_name=_("internal user type")

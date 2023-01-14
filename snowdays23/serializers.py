@@ -116,7 +116,7 @@ class ResidenceSerializer(serializers.ModelSerializer):
             "bolzano/bozen", 
             "bolzano-bozen"
         ] or data['postal_code'] != "39100":
-            raise serializers.ValidationError(_("Host participants must be located in Bolzano/Bozen"))
+            raise serializers.ValidationError(_("Participants who want to host must be located in Bolzano/Bozen"))
         if data['is_college']:
             try:
                 college = Residence.objects.get(college_slug=data['college_slug'])
@@ -190,6 +190,9 @@ class NewParticipantSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(_("Internal participants must register with unibz email address"))
             data['internal'] = True
         elif university_code == "alumni":
+            # Double check: either alumni or externals could get here
+            if not AllowedAlumnus.objects.filter(email__iexact=email).exists():
+                raise serializers.ValidationError(_("Email is not an allowed participant"))
             data['internal_user_type'] = {
                 "name": "alumnus",
                 "guests": 0
@@ -211,14 +214,17 @@ class NewParticipantSerializer(serializers.ModelSerializer):
 
         if data['internal'] and university_code != "alumni":
             user_types = []
+            guests = data.pop('guests', 0)
             is_host = data['is_host']
             is_helper = data['is_helper']
             can_enrol_helpers = InternalUserType.can_enrol_type("helper")
-            can_enrol_hosts = InternalUserType.can_enrol_type("host")
+            can_enrol_hosts = InternalUserType.can_enrol_type("host", guests)
             if is_host:
                 if not can_enrol_hosts:
-                    raise serializers.ValidationError(_("No host slots left"))
+                    raise serializers.ValidationError(_("No host slots left: try reducing the number of guests"))
                 user_types.append("host")
+            else:
+                guests = 0
             if is_helper:
                 if not can_enrol_helpers:
                     raise serializers.ValidationError(_("No helper slots left"))
@@ -228,7 +234,6 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             
             user_type = "+".join(user_types) if len(user_types) > 0 else "full"
             
-            guests = data.pop('guests', 0) if is_host else 0
             if data['residence']['is_college']:
                 college = Residence.objects.get(college_slug=data['residence']['college_slug'])
                 if guests > college.max_guests:
@@ -298,20 +303,6 @@ class NewParticipantSerializer(serializers.ModelSerializer):
                 **validated_data
             }
         )
-        # participant = Participant.objects.create(
-        #     user=User.objects.create(
-        #         first_name=first_name,
-        #         last_name=last_name,
-        #         email=email,
-        #         username=email
-        #     ),
-        #     university=university,
-        #     eating_habits=eating_habits,
-        #     policies=policies,
-        #     internal_type=internal_user_type,
-        #     residence=residence,
-        #     **validated_data
-        # )
         gear_items = Gear.objects.bulk_create([
             Gear(**gear) for gear in rented_gear
         ])

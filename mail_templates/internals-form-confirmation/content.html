@@ -1,0 +1,230 @@
+{% load inlinecss %}
+{% load static %}
+{% inlinecss "snowdays23/css/email.css" %}
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>Snowdays23</title>
+ 	</head>
+
+	<body>
+        
+        <div class="row justify-content-center center mt-5 mb-4">
+        <img src="{{ host }}{% static 'snowdays23/img/email-logo.png' %}" class="mb-5" alt="logo" />
+          </div>
+           
+        <div class="row justify-content-center h6 mt-5" >
+            
+                
+                <p class="sans-serif h6">
+                    <div class="col-8 sans-serif">
+                        Ciao {{participant.first_name}} {{participant.last_name}},
+
+                        <br/>
+                        <br/>
+
+                        Welcome aboard the Snowdays23 squad! We can't wait to see you for the long-awaited next chapter of our games. The sign-up process is complete and all there's left for you to do is purchase the ticket that will secure your entrance and all the included benefits.                    
+                        <br/>
+                        <br/>
+
+                        This is a recap of the info you just inserted, in case you made a mistake, please contact us (at info@snowdays.it) so we can fix it before proceeding:
+                    </div>
+            
+                    <div class="w-100"></div>
+            
+                    <div class="col-8 sans-serif" >
+
+                        <ul>
+                            <li>Full Name: {{participant.first_name}} {{participant.last_name}}</li>
+                            <li>Gender: </li>
+                            <li>Date of Birth: {{participant.dob|date:"d/M/Y"}}</li>
+                            <li>Phone Number: {{participant.phone}}</li>
+                            <li>Registration number (university ID): {{participant.student_nr}}</li>
+                        </ul>
+
+                        <br/>
+                        
+                    </div>
+            
+                    <div class="w-100"></div>
+            
+                    <div class="col-8 sans-serif">
+
+                        {% if participant.internal and participant.internal_type.name == "host" %}
+                        You specified that you CAN host.
+                        <ul>
+                            <li>And your address is: {{ participant.residence.full_address }}</li>
+                            {% if participant.internal_type.guests == 1 %}
+                            <li>And you can host one person.</li>
+                            {% else %}
+                            <li>And you can host {{ participant.internal_type.guests }} people.</li>
+                            {% endif %}
+                        </ul>
+
+                        {% elif participant.internal and participant.internal_type.name == "helper" %}
+                        You specified that you CAN help us.
+
+                        {% elif participant.internal and participant.internal_type.name == "host+helper" %}
+                        You specified that you can help AND host.
+                        <ul>
+                            <li>Your address is: {{ participant.residence.full_address }}</li>
+                            {% if participant.internal_type.guests == 1 %}
+                            <li>And you can host one person.</li>
+                            {% else %}
+                            <li>And you can host {{ participant.internal_type.guests }} people.</li>
+                            {% endif %}
+                        </ul>
+
+                        {% endif %}
+                        <br/>
+
+                     </div>
+
+                    <div class="w-100"></div>
+                                           <br/>
+
+                    <div class="col-8 sans-serif">
+
+                        Sports you would like to play during Snowdays23: {{ participant.get_selected_sport_display }}
+
+                        <br/>
+                    </div>
+
+            
+                    <div class="w-100"></div>
+            
+                    <div class="col-8 sans-serif">
+
+                        Your details about rentals:
+                        <br/>
+
+                        <ul>
+                            <li>{% if participant.height %} Height in centimeters: {{participant.height}}{% else %} No height specified{% endif %}</li>
+                            <li>{% if participant.weight %} Weight in kilograms: {{participant.weight}}{% else %} No weight specified{% endif %}</li>
+                            <li>{% if participant.helmet_size %} Helmet size: {{participant.helmet_size}}{% else %} No helmet size specified{% endif %}</li>
+                            <li>{% if participant.shoe_size %} Shoe size (european measure): {{participant.shoe_size}}{% else %} No shoe size specified{% endif %}</li>
+                        </ul>
+                        
+                    </div>
+            
+                    <div class="w-100"></div>
+            
+                    <div class="col-8 sans-serif">
+                        <div class="col-8 sans-serif">
+                            What you want to rent:
+                            <br/>
+                            <ul>
+                                {% for gear in participant.rented_gear.all %}
+                                <li>{{ gear.get_name_display }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <br/>            
+                        and finally, your eating needs:
+                        <br/>
+                        <ul>
+                            <li>{% if participant.eating_habits.vegetarian %} you are a vegetarian{% else %} you are not a vegetarian{% endif %}</li>
+                            <li>{% if participant.eating_habits.vegan %} you are vegan{% else %} you are not vegan{% endif %}</li>
+                            <li>{% if participant.eating_habits.gluten_free %} you are gluten intolerant{% else %} you are not gluten intolerant{% endif %}</li>
+                            <li>{% if participant.eating_habits.lactose_free %} you are lactose intolerant{% else %} you are not lactose intolerant{% endif %}</li>
+                            <li>{% if participant.additional_notes %}
+                         you specified the following additional notes about your eating needs: {{participant.additional_notes}}
+                        {% endif %}</li>
+                        </ul>
+                        <br/> 
+                        
+                    </div>
+
+                    <div class="w-100"></div>
+            
+                    <div class="col-8 sans-serif">
+                        
+                        Once you made sure that all your details are correct, you're ready to go!
+                        <br/> 
+                        <br/> 
+
+                        Click on the following link to get to our checkout page.
+                        <br/> 
+
+                        Here it is: {{checkout_url}}
+                        <br/> 
+                        <br/>
+
+                        We want to remind you that you will pay full price now <strong>but you will get back</strong>  the amount you are entitled to depending on your <strong>discount</strong>, by the <strong>20th of March 2023</strong>. 
+                        <br/>
+                        <br/>
+
+                        We kindly ask you to proceed as soon as possible! Be aware that you need to pay within the <strong>23rd of February 2023 at midnight</strong>.
+                        <br/> 
+                        <br/> 
+
+                        We cannot wait to see you on the slopes!
+                        <br/> 
+                        Because remember, there are no days like Snowdays!
+                        <br/> 
+
+                        <br/> 
+
+                        Best,
+                        <br/> 
+
+                        SD23 team
+                        <br/>   
+                        <br/>   
+                        <br/>   
+                    </div>
+                    <div class="w-100"></div>
+                </div>
+
+                </p>
+
+        </div>
+    
+        <div class="row justify-content-center center sans-serif">
+            
+            <div class="col-10 center">
+                <strong class="center-text h3 blue">❄❄❄❄❄❄❄❄❄❄❄❄❄❄❄</strong>
+            </div>
+            <div class="w-100"></div>
+            
+            <br/>
+            
+            <div class="col-10 center">
+                <h1 class="center-text h1"><strong class="center-text">SNOWDAYS</strong></h1>
+            </div>
+            <div class="w-100"></div>
+            <div class="col-10 center">
+                <h5 class="center-text"><strong class="center-text"><span class="blue">❄</span> Europe's biggest winter sports event organised by students for students  <span class="blue">❄</span></strong></h5>
+            </div>
+            <div class="w-100"></div>
+            
+        </div>
+    
+        <br/>
+        <br/>
+        <br/>
+    
+        <div class="row justify-content-center sans-serif mb-5 h6">
+            
+            <div class="col-8 h6">
+                <p class="h6">
+        
+                    C5.06 - Universitätsplatz / Piazza Università, 1
+                    <br/>
+                    I - 39100 Bozen/Bolzano
+                    <br/>
+                    IG: @snowdays.bolzano
+                    <br/>
+                    
+                </p>
+                
+            </div>
+            
+        </div>
+        
+        
+	</body>
+</html>
+{% endinlinecss %}

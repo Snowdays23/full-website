@@ -31,6 +31,12 @@
                         
                         <label class="h4"> <strong>Your ticket code: {{CODE}}</strong></label>
                         <br/>
+
+                        {% if participant.internal and participant.internal_type.name != "alumnus" and participant.internal_type.name != "full" %}
+                        We want to remind you that you paid full price now but you will get back the amount you are entitled to depending on your discount, by the 20/03/2023. 
+                        {% endif %}
+                        <br/>
+
                         
                         For any problem or question, don't hesitate to contact us at info@snowdays.it
                     

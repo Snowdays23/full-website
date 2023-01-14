@@ -61,6 +61,7 @@ urlpatterns = [
     path('api/payments/', include('sd23payments.urls')),
 
     path('not-found', serve_react, name="not-found"),
+    path('error', serve_react, name="error"),
     re_path(r"^$", serve_react),
     re_path(r"^(?:.*)/?$", serve_react),
 ]

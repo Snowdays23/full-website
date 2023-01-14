@@ -2,6 +2,11 @@ Ciao {{participant.first_name}} {{participant.last_name}},
 with this email we want to confirm that we have received your payment. We are looking forward to see you at the event!
 
 Your ticket code: {{CODE}}
+
+{% if participant.internal and participant.internal_type.name != "alumnus" and participant.internal_type.name != "full" %}
+We want to remind you that you paid full price now but you will get back the amount you are entitled to depending on your discount, by the 20/03/2023. 
+{% endif %}
+
 For any problem or question, don't hesitate to contact us at info@snowdays.it
 
 

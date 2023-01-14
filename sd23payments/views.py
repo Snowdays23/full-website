@@ -30,6 +30,8 @@ from post_office import mail
 from sd23payments.models import Order
 
 import stripe
+import datetime
+import urllib
 
 stripe.api_key = settings.STRIPE_SECRET_API_KEY
 
@@ -41,12 +43,18 @@ class CreateStripeCheckout(View):
         except Order.DoesNotExist:
             return redirect("not-found")
 
+        if order.participant.internal and order.participant.internal_type.name != "alumnus":
+            if datetime.datetime.now(tz=order.created.tzinfo) - order.created > settings.INTERNALS_EXPIRATION_DELTA:
+                return f"{redirect('error')}?{urllib.urlencode('code=454')}"
+
         if order.status == "paid":
             return redirect("not-found")
         
         if order.stripe_order_id:
-            # TODO: alert the user: only the latest payment session will succeed
+            multiple_sessions = True
             print(f"Order already has a stripe checkout session associated to it, continuing...")
+        else:
+            multiple_sessions = False
 
         items = [{
             "price": item.id,
@@ -75,6 +83,8 @@ class CreateStripeCheckout(View):
         order.stripe_order_id = session.id
         order.save()
 
+        if multiple_sessions:
+            return f"{redirect('error')}?{urllib.urlencode(f'code=450&link={session.url}')}"
         return redirect(session.url)
 
 
@@ -91,25 +101,21 @@ class StripeCheckoutCompleted(View):
                 raise ValueError("No PaymentIntent associated with this checkout session")
             payment_intent = stripe.payment_intent.PaymentIntent.retrieve(session.payment_intent)
         except Exception as e:
-            # TODO: alert the user: error retrieving checkout session or payment intent, 
-            # something went wrong and the user needs to start the payment process over
             print(f"Could not retrieve payment status: {e!r}")
-            return redirect("not-found")
+            return f"{redirect('error')}?{urllib.urlencode('code=451')}"
         
         print(payment_intent)
 
         if not payment_intent.status == "requires_capture":
-            # TODO: alert the user: payment not ready to be captured, start over
             print(f"PaymentIntent in invalid status to be captured: {payment_intent.status}")
-            return redirect("not-found")
+            return f"{redirect('error')}?{urllib.urlencode('code=452')}"
 
         try:
             capture = payment_intent.capture()
             print("captured")
         except Exception as e:
-            # TODO: alert the user: payment could not be captured, contact team
             print(f"Could not capture payment: {e!r}")
-            return redirect("not-found")
+            return f"{redirect('error')}?{urllib.urlencode('code=453')}"
         
         order.status = "paid"
         order.save()

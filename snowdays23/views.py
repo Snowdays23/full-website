@@ -55,6 +55,12 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         participant = serializer.save()
 
+        # If previous order(s) associated to this participant exist(s), they must be
+        # deleted: user has signed up again (maybe payment link has expired) 
+        orders = Order.objects.filter(participant=participant)
+        if orders.exists():
+            orders.delete()
+
         if participant.internal:
             ticket = BillableItem.objects.get(slug="internal-ticket")
         else:
@@ -64,19 +70,34 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         )
         order.items.add(ticket)
 
-        mail.send(
-            participant.user.email,
-            "Snowdays <noreply@snowdays.it>",
-            template="form-confirmation",
-            context={
-                'host': settings.HOST,
-                'participant': participant,
-                'checkout_url': reverse("stripe-checkout", kwargs={
-                    "sd_order_id": order.sd_order_id
-                }, current_app="sd23payments")
-            },
-            priority='now'
-        )
+        if participant.internal:
+            mail.send(
+                participant.user.email,
+                "Snowdays <noreply@snowdays.it>",
+                template="internals-form-confirmation",
+                context={
+                    'host': settings.HOST,
+                    'participant': participant,
+                    'checkout_url': reverse("stripe-checkout", kwargs={
+                        "sd_order_id": order.sd_order_id
+                    }, current_app="sd23payments")
+                },
+                priority='now'
+            )
+        else:
+            mail.send(
+                participant.user.email,
+                "Snowdays <noreply@snowdays.it>",
+                template="form-confirmation",
+                context={
+                    'host': settings.HOST,
+                    'participant': participant,
+                    'checkout_url': reverse("stripe-checkout", kwargs={
+                        "sd_order_id": order.sd_order_id
+                    }, current_app="sd23payments")
+                },
+                priority='now'
+            )
 
 
 class GetParticipantByBraceletId(APIView):
