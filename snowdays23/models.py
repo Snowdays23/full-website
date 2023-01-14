@@ -386,7 +386,7 @@ class Participant(models.Model):
 
     internal_type = models.ForeignKey(
         InternalUserType,
-        on_delete=models.PROTECT,
+        on_delete=models.DO_NOTHING,
         null=True,
         blank=True,
         verbose_name=_("internal user type")
@@ -479,6 +479,8 @@ class Participant(models.Model):
 
     def delete(self, **kwargs):
         self.rented_gear.clear()
+        if self.internal_type:
+            self.internal_type.delete()
         super().delete(**kwargs)
 
     class Meta:
