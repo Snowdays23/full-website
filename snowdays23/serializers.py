@@ -25,7 +25,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
-from snowdays23.models import Participant, AllowedParticipant, EatingHabits, University, Gear, Policies, Residence, InternalUserType
+from snowdays23.models import Participant, AllowedParticipant, AllowedAlumnus, EatingHabits, University, Gear, Policies, Residence, InternalUserType
 from sd23payments.models import Order
 
 
@@ -157,7 +157,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     def validate_email(self, email):
         unibz = email.lower().endswith("@unibz.it") or email.lower().endswith("@cons.bz.it")
         if settings.STRICT_ALLOWED_EMAIL_CHECK and not unibz:
-            if not AllowedParticipant.objects.filter(email__iexact=email).exists():
+            if not AllowedParticipant.objects.filter(email__iexact=email).exists() and not AllowedAlumnus.objects.filter(email__iexact=email).exists():
                 raise serializers.ValidationError(_("Email is not an allowed participant"))
 
         if unibz:
@@ -189,6 +189,12 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             if not email.endswith("@unibz.it") and not email.endswith("@cons.bz.it"):
                 raise serializers.ValidationError(_("Internal participants must register with unibz email address"))
             data['internal'] = True
+        elif university_code == "alumni":
+            data['internal_user_type'] = {
+                "name": "alumnus",
+                "guests": 0
+            }
+            data['internal'] = True
         else:
             data['internal'] = False 
 
@@ -203,7 +209,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             data['helmet_size'] = None
             data['shoe_size'] = None
 
-        if data['internal']:
+        if data['internal'] and university_code != "alumni":
             user_types = []
             is_host = data['is_host']
             is_helper = data['is_helper']
@@ -237,7 +243,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
                 "guests": guests
             }
         else:
-            # Remove (reset) fields allowed on internal participants only
+            # Remove (reset) fields that are allowed on internal participants only
             data['is_helper'] = False
             data['is_host'] = False
             data['residence'] = None

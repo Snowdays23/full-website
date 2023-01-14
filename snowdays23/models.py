@@ -386,7 +386,7 @@ class Participant(models.Model):
 
     internal_type = models.ForeignKey(
         InternalUserType,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
         verbose_name=_("internal user type")
@@ -488,6 +488,15 @@ class Participant(models.Model):
 class AllowedParticipant(models.Model):
     email = models.TextField(
         verbose_name=_("pre-registered email provided by guest uni")
+    )
+
+    def __str__(self):
+        return self.email
+
+
+class AllowedAlumnus(models.Model):
+    email = models.TextField(
+        verbose_name=_("pre-registered email provided by unibz")
     )
 
     def __str__(self):
