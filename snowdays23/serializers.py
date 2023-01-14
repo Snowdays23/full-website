@@ -228,7 +228,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             
             user_type = "+".join(user_types) if len(user_types) > 0 else "full"
             
-            guests = data.pop('guests', 0)
+            guests = data.pop('guests', 0) if is_host else 0
             if data['residence']['is_college']:
                 college = Residence.objects.get(college_slug=data['residence']['college_slug'])
                 if guests > college.max_guests:
