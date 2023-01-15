@@ -39,6 +39,7 @@ stripe.api_key = settings.STRIPE_SECRET_API_KEY
 
 class CreateStripeCheckout(View):
     def get(self, request, sd_order_id=None):
+        print(request.META)
         try:
             order = Order.objects.get(sd_order_id=sd_order_id)
         except Order.DoesNotExist:
