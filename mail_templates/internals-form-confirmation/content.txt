@@ -14,7 +14,7 @@ Registration number (university ID): {{participant.student_nr}}
 
 {% if participant.internal and participant.internal_type.name == "host" %}
 You specified that you CAN host.
-And your address is: {{ participant.residence.full_address }}
+And your address is: {{ participant.residence.full_address }}{% if participant.residence.is_college %}{{ participant.room_nr }}{% endif %}
 {% if participant.internal_type.guests == 1 %}
 And you can host one person.
 {% else %}
@@ -26,7 +26,7 @@ You specified that you CAN help us.
 
 {% elif participant.internal and participant.internal_type.name == "host+helper" %}
 You specified that you can help AND host.
-Your address is: {{ participant.residence.full_address }}
+Your address is: {{ participant.residence.full_address }}{% if participant.residence.is_college %}{{ participant.room_nr }}{% endif %}
 {% if participant.internal_type.guests == 1 %}
 And you can host one person.
 {% else %}
@@ -65,7 +65,7 @@ Here it is: {{host}}{{checkout_url}}
 
 We want to remind you that you will pay full price now but you will get back the amount you are entitled to depending on your discount, by the 20th of March 2023. 
 
-We kindly ask you to proceed as soon as possible! Be aware that you need to pay within the 23rd of February 2023 at midnight.
+We kindly ask you to proceed as soon as possible! Be aware that you need to pay now, as the link for the payment will expire within two hours! 
 
 We cannot wait to see you on the slopes!
 Because remember, there are no days like Snowdays!

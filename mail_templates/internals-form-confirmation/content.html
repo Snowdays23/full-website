@@ -54,7 +54,7 @@
                         {% if participant.internal and participant.internal_type.name == "host" %}
                         You specified that you CAN host.
                         <ul>
-                            <li>And your address is: {{ participant.residence.full_address }}</li>
+                            <li>And your address is: {{ participant.residence.full_address }} {% if participant.residence.is_college %}{{ participant.room_nr }}{% endif %}</li>
                             {% if participant.internal_type.guests == 1 %}
                             <li>And you can host one person.</li>
                             {% else %}
@@ -68,7 +68,7 @@
                         {% elif participant.internal and participant.internal_type.name == "host+helper" %}
                         You specified that you can help AND host.
                         <ul>
-                            <li>Your address is: {{ participant.residence.full_address }}</li>
+                            <li>Your address is: {{ participant.residence.full_address }} {% if participant.residence.is_college %}{{ participant.room_nr }}{% endif %}</li>
                             {% if participant.internal_type.guests == 1 %}
                             <li>And you can host one person.</li>
                             {% else %}
@@ -154,7 +154,7 @@
                         <br/>
                         <br/>
 
-                        We kindly ask you to proceed as soon as possible! Be aware that you need to pay within the <strong>23rd of February 2023 at midnight</strong>.
+                        We kindly ask you to proceed as soon as possible! Be aware that you need to pay now, as the link for the payment will expire within two hours!
                         <br/> 
                         <br/> 
 
