@@ -28,21 +28,34 @@ from rest_framework.views import APIView
 from post_office import mail
 
 from sd23payments.models import Order
+from snowdays23.urls import redirect_error
 
 import stripe
+import datetime
+import urllib.parse
 
 stripe.api_key = settings.STRIPE_SECRET_API_KEY
 
 
 class CreateStripeCheckout(View):
     def get(self, request, sd_order_id=None):
+        print(request.META)
         try:
             order = Order.objects.get(sd_order_id=sd_order_id)
         except Order.DoesNotExist:
             return redirect("not-found")
 
-        if order.stripe_order_id and order.status == "paid":
+        if order.participant.internal and order.participant.internal_type.name != "alumnus":
+            if datetime.datetime.now(tz=order.created.tzinfo) - order.created > settings.INTERNALS_EXPIRATION_DELTA:
+                return redirect_error(454)
+
+        if order.status == "paid":
             return redirect("not-found")
+        
+        if order.stripe_order_id:
+            multiple_sessions = True
+        else:
+            multiple_sessions = False
 
         items = [{
             "price": item.id,
@@ -63,11 +76,16 @@ class CreateStripeCheckout(View):
                 "sd_order_id": order.sd_order_id
             }),
             line_items=items,
-            mode="payment"
+            mode="payment",
+            payment_intent_data={
+                "capture_method": "manual"
+            }            
         )
         order.stripe_order_id = session.id
         order.save()
 
+        if multiple_sessions:
+            return redirect_error(450, link=session.url)
         return redirect(session.url)
 
 
@@ -80,12 +98,23 @@ class StripeCheckoutCompleted(View):
         
         try:
             session = stripe.checkout.Session.retrieve(order.stripe_order_id)
-        except:
-            return redirect("not-found")
-
-        if not session.status == "complete" and not session.payment_status == "paid":
-            return redirect("not-found")
+            if not session.payment_intent:
+                raise ValueError("No PaymentIntent associated with this checkout session")
+            payment_intent = stripe.payment_intent.PaymentIntent.retrieve(session.payment_intent)
+        except Exception as e:
+            return redirect_error(451)
         
+        if not payment_intent.status == "requires_capture":
+            return redirect_error(452)
+
+        try:
+            capture = payment_intent.capture()
+        except Exception as e:
+            return redirect_error(453)
+        
+        order.status = "paid"
+        order.save()
+
         mail.send(
             order.participant.user.email,
             "Snowdays <noreply@snowdays.it>",
@@ -97,9 +126,6 @@ class StripeCheckoutCompleted(View):
             },
             priority='now'
         )
-
-        order.status = "paid"
-        order.save()
         return redirect('/success-checkout')
 
 

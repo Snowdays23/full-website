@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -159,6 +159,141 @@ class Policies(models.Model):
     )
 
 
+class Residence(models.Model):
+    address = models.TextField(
+        verbose_name=_("street name")
+    )
+
+    city = models.CharField(
+        max_length=32,
+        verbose_name=_("city or town")
+    )
+
+    postal_code = models.CharField(
+        max_length=8,
+        verbose_name=_("postal code")
+    )
+
+    street_nr = models.CharField(
+        max_length=6,
+        verbose_name=_("street number")
+    )
+
+    is_college = models.BooleanField(
+        verbose_name=_("location is a college"),
+        default=False
+    )
+
+    college_slug = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True,
+        verbose_name=_("college id")
+    )
+
+    college_name = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True,
+        verbose_name=_("college full name")
+    )
+
+    max_guests = models.IntegerField(
+        verbose_name=_("maximum number of guests this location can hold at once"),
+        default=4
+    )
+
+    def __str__(self):
+        if self.is_college:
+            return self.college_name
+        return f"{self.address}, {self.street_nr} ({self.city} {self.postal_code})"
+
+    @property
+    def full_address(self):
+        if self.is_college:
+            return f"Student dorm {self.college_name} ({self.address} {self.street_nr})"
+        return f"{self.address} {self.street_nr}, {self.city} {self.postal_code}"
+
+
+class InternalUserType(models.Model):
+    name = models.CharField(
+        choices=[
+            ("full", "Full Price"),
+            ("helper", "Helper"),
+            ("host", "Host"),
+            ("host+helper", "Host and Helper"),
+            ("alumnus", "Alumnus")
+        ],
+        max_length=16,
+        verbose_name=_("user type")
+    )
+
+    guests = models.IntegerField(
+        default=0,
+        verbose_name=_("external guests hosted")
+    )
+
+    """
+        Price table for internal participants, based on availability for helping with
+        organizational tasks and/or hosting external participants.
+
+        Full price for internals: €160.0
+        Helper price: €130.0
+        Host price (one guest): €130.0
+        Helper + Host price (one guest): €100.0
+        Host price (two guests): €110.0
+        Discount for each additional guest (after 2nd): €10.0
+    """
+    @property
+    def get_ticket_price(self):
+        price = {
+            "full": 16000, # Full Price
+            "alumnus": 16000, # Alumni
+            "helper": 13000, # Helper
+            "host": 13000, # Host (1 external)
+            "host+helper": 10000 # Helper + Host (1 external)
+        }[self.name]
+        if self.guests > 1:
+            # Discount for 2nd external hosted
+            price -= 2000
+        # Discount for each additional external participant hosted (after the 2nd)
+        return price - max(0, self.guests - 2) * 1000
+
+
+    """
+        Enrolment limits for internal participants based on user type.
+
+        Full: no limit
+        Hosts: 205
+        Helpers: 65
+    """
+    def can_enrol_type(type, count=1):
+        limits = {
+            "helper": 65,
+            "host": 205
+        }
+        helpers = Participant.objects.filter(
+            internal_type__name__icontains="helper"
+        ).count()
+        hosts = InternalUserType.objects.aggregate(Sum('guests'))['guests__sum']
+        if not hosts:
+            hosts = 0
+
+        if type == "helper":
+            return helpers + count <= limits["helper"]
+        elif type == "host":
+            return hosts + count <= limits["host"]
+        elif type == "host+helper":
+            return helpers + count <= limits["helper"] and hosts + count <= limits["host"]
+        else:
+            return True
+
+    def __str__(self):
+        if self.guests > 0:
+            return f"{self.name} (hosting {self.guests} people)"
+        return f"{self.name}"
+
+
 class Participant(models.Model):
     user = models.OneToOneField(
         "auth.User",
@@ -238,7 +373,7 @@ class Participant(models.Model):
 
     eating_habits = models.ForeignKey(
         EatingHabits,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name=_("special eating needs declared by this participant")
     )
 
@@ -251,6 +386,14 @@ class Participant(models.Model):
     internal = models.BooleanField(
         default=False,
         verbose_name=_("flag indicating whether this participant belongs to the host university")
+    )
+
+    internal_type = models.ForeignKey(
+        InternalUserType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("internal user type")
     )
 
     needs_accomodation = models.BooleanField(
@@ -291,6 +434,21 @@ class Participant(models.Model):
         blank=True
     )
 
+    residence = models.ForeignKey(
+        Residence,
+        on_delete=models.SET_NULL,
+        verbose_name=_("host location"),
+        null=True,
+        blank=True
+    )
+
+    room_nr = models.CharField(
+        max_length=8,
+        null=True,
+        blank=True,
+        verbose_name=_("host college room number")
+    )
+
     def __str__(self):
         return f"#{self.pk} [{self.bracelet_id}] {self.first_name} {self.last_name} <{self.email}> ({self.university.name})"
 
@@ -325,6 +483,10 @@ class Participant(models.Model):
 
     def delete(self, **kwargs):
         self.rented_gear.clear()
+        if self.internal_type:
+            self.internal_type.delete()
+        if self.residence and not self.residence.is_college:
+            self.residence.delete()
         super().delete(**kwargs)
 
     class Meta:
@@ -338,3 +500,15 @@ class AllowedParticipant(models.Model):
 
     def __str__(self):
         return self.email
+
+
+class AllowedAlumnus(models.Model):
+    email = models.TextField(
+        verbose_name=_("pre-registered email provided by unibz")
+    )
+
+    def __str__(self):
+        return self.email
+    
+    class Meta:
+        verbose_name_plural = _("Allowed alumni")

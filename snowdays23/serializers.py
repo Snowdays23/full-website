@@ -22,10 +22,12 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Sum
 
 from rest_framework import serializers
 
-from snowdays23.models import Participant, AllowedParticipant, EatingHabits, University, Gear, Policies
+from snowdays23.models import Participant, AllowedParticipant, AllowedAlumnus, EatingHabits, University, Gear, Policies, Residence, InternalUserType
+from sd23payments.models import Order
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -95,6 +97,41 @@ class PoliciesSerializer(serializers.ModelSerializer):
         return data
 
 
+class ResidenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Residence
+        fields = [
+            'address',
+            'street_nr',
+            'city',
+            'postal_code',
+            'is_college',
+            'college_slug'
+        ]
+    
+    def validate(self, data):
+        if data['city'].lower() not in [
+            "bolzano", 
+            "bozen", 
+            "bolzano bozen", 
+            "bolzano/bozen", 
+            "bolzano-bozen"
+        ] or data['postal_code'] != "39100":
+            raise serializers.ValidationError(_("Participants who want to host must be located in Bolzano/Bozen"))
+        if data['is_college']:
+            try:
+                college = Residence.objects.get(college_slug=data['college_slug'])
+            except Residence.DoesNotExist:
+                raise serializers.ValidationError(_("Invalid college"))
+            data['address'] = college.address
+            data['street_nr'] = college.street_nr
+            data['postal_code'] = college.postal_code
+            data['city'] = college.city
+            data['college_name'] = college.college_name
+            data['max_guests'] = college.max_guests
+        return data
+
+
 class NewParticipantSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
@@ -102,8 +139,12 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     eating_habits = EatingHabitsSerializer()
     university = serializers.CharField()
     needs_rent = serializers.BooleanField(write_only=True)
+    residence = ResidenceSerializer(required=False)
     rented_gear = GearSerializer(many=True)
     policies = PoliciesSerializer()
+    is_helper = serializers.BooleanField(required=False)
+    is_host = serializers.BooleanField(required=False)
+    guests = serializers.IntegerField(required=False)
 
     def validate_university(self, slug):
         if not slug:
@@ -115,11 +156,24 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         return slug
     
     def validate_email(self, email):
-        if settings.STRICT_ALLOWED_EMAIL_CHECK:
-            if not AllowedParticipant.objects.filter(email__iexact=email).exists():
+        unibz = email.lower().endswith("@unibz.it") or email.lower().endswith("@cons.bz.it")
+        if settings.STRICT_ALLOWED_EMAIL_CHECK and not unibz:
+            if not AllowedParticipant.objects.filter(email__iexact=email).exists() and not AllowedAlumnus.objects.filter(email__iexact=email).exists():
                 raise serializers.ValidationError(_("Email is not an allowed participant"))
 
-        if User.objects.filter(email=email).exists():
+        if unibz:
+            # Testing whether an order for this participant (by email) already exists, meaning
+            # it is already registered and could be in the payment timespan.
+            # If such order exists, then raise iff it is not pending (so it has been paid) or is has
+            # been created less than two hours ago (user has still time to pay).
+            o = Order.objects.filter(
+                participant__user__email__iexact=email,
+            )
+            if o.exists() and (o.first().status != "pending" or o.first().created >= datetime.datetime.now(
+                tz=o.first().created.tzinfo
+            ) - settings.INTERNALS_EXPIRATION_DELTA):
+                raise serializers.ValidationError(_("Email is already registered"))
+        elif User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError(_("Email is already registered"))
         return email
 
@@ -138,7 +192,24 @@ class NewParticipantSerializer(serializers.ModelSerializer):
         student_nr = data.get('student_nr')
         if Participant.objects.filter(university__slug=university_code, student_nr=student_nr).exists():
             raise serializers.ValidationError(_("Duplicate student number within the same university"))
-        
+
+        email = data.get('email')
+        if university_code == "unibz":
+            if not email.endswith("@unibz.it") and not email.endswith("@cons.bz.it"):
+                raise serializers.ValidationError(_("Internal participants must register with unibz email address"))
+            data['internal'] = True
+        elif university_code == "alumni":
+            # Double check: either alumni or externals could get here
+            if not AllowedAlumnus.objects.filter(email__iexact=email).exists():
+                raise serializers.ValidationError(_("Email is not an allowed participant"))
+            data['internal_user_type'] = {
+                "name": "alumnus",
+                "guests": 0
+            }
+            data['internal'] = True
+        else:
+            data['internal'] = False 
+
         rented_gear = data['rented_gear']
         for i, gear in enumerate(rented_gear):
             if rented_gear.index(gear) != i:
@@ -150,33 +221,107 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             data['helmet_size'] = None
             data['shoe_size'] = None
 
+        if data['internal'] and university_code != "alumni":
+            user_types = []
+            guests = data.pop('guests', 0)
+            is_host = data['is_host']
+            is_helper = data['is_helper']
+            can_enrol_helpers = InternalUserType.can_enrol_type("helper")
+            can_enrol_hosts = InternalUserType.can_enrol_type("host", guests)
+            if is_host:
+                if guests < 1:
+                    raise serializers.ValidationError(_("Invalid number of guests"))
+                if not can_enrol_hosts:
+                    raise serializers.ValidationError(_("No host slots left: try reducing the number of guests"))
+                user_types.append("host")
+            else:
+                guests = 0
+            if is_helper:
+                if not can_enrol_helpers:
+                    raise serializers.ValidationError(_("No helper slots left"))
+                user_types.append("helper")
+            if not is_host and not is_helper and (can_enrol_hosts or can_enrol_helpers):
+                raise serializers.ValidationError(_("Only enrolling helpers and hosts"))
+            
+            user_type = "+".join(user_types) if len(user_types) > 0 else "full"
+            
+            if data['residence']['is_college']:
+                college = Residence.objects.get(college_slug=data['residence']['college_slug'])
+                hosted_in_college = Participant.objects.filter(residence=college, internal=True).aggregate(Sum('internal_type__guests'))['internal_type__guests__sum']
+                if not hosted_in_college:
+                    hosted_in_college = 0
+                if guests + hosted_in_college > college.max_guests:
+                    raise serializers.ValidationError(_("Too many guests for the specified residence: check the rules!"))
+            else:
+                if guests > Residence.max_guests.field.default:
+                    raise serializers.ValidationError(_("Too many guests for the specified residence: check the rules!"))
+                # maximum number of guests for any residence must not be selectable by the user:
+                # drop it if present in the request
+                if "max_guests" in data['residence']:
+                    del data['residence']['max_guests']
+            data['internal_user_type'] = {
+                "name": user_type,
+                "guests": guests
+            }
+        else:
+            # Remove (reset) fields that are allowed on internal participants only
+            data['is_helper'] = False
+            data['is_host'] = False
+            data['residence'] = None
+            data['room_nr'] = None
+            if "guests" in data:
+                del data['guests']
+
         return data
 
     def create(self, validated_data):
+        email = validated_data.pop('email')
         first_name = validated_data.pop('first_name')
         last_name = validated_data.pop('last_name')
-        email = validated_data.pop('email')
         university = University.objects.get(slug=validated_data.pop('university'))
         eating_habits = EatingHabits.objects.create(**validated_data.pop('eating_habits'))
         rented_gear = validated_data.pop('rented_gear')
         needs_rent = validated_data.pop('needs_rent')
         policies = Policies.objects.create(**validated_data.pop('policies'))
-        participant = Participant.objects.create(
-            user=User.objects.create(
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                username=email
-            ),
-            university=university,
-            eating_habits=eating_habits,
-            policies=policies,
-            **validated_data
+        is_helper = validated_data.pop('is_helper', False)
+        is_host = validated_data.pop('is_host', False)
+        residence = validated_data.pop('residence', None)
+        if not is_host:
+            residence = None
+        elif residence['is_college']:
+            residence = Residence.objects.get(college_slug=residence['college_slug'])
+        else:
+            residence = Residence.objects.create(**residence)
+        if "internal_user_type" in validated_data:
+            internal_user_type = InternalUserType.objects.create(**validated_data.pop('internal_user_type'))
+        else:
+            internal_user_type = None
+        
+        participant, created = Participant.objects.update_or_create(
+            user__email__iexact=email,
+            defaults={
+                'user': User.objects.update_or_create(
+                    email__iexact=email, 
+                    defaults={
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'email': email,
+                        'username': email
+                    }
+                )[0],
+                'university': university,
+                'eating_habits': eating_habits,
+                'policies': policies,
+                'internal_type': internal_user_type,
+                'residence': residence,
+                **validated_data
+            }
         )
         gear_items = Gear.objects.bulk_create([
             Gear(**gear) for gear in rented_gear
         ])
         participant.rented_gear.set(gear_items)
+
         participant.save()
         return participant
 
@@ -191,6 +336,8 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             'student_nr',
             'dob',
             'phone',
+            'residence',
+            'room_nr',
             'eating_habits',
             'additional_notes',
             'needs_accomodation',
@@ -201,5 +348,8 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             'helmet_size',
             'rented_gear',
             'selected_sport',
-            'policies'
+            'policies',
+            'is_helper',
+            'is_host',
+            'guests'
         )

@@ -30,10 +30,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import urllib.parse
+
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, re_path, include
-from django.shortcuts import render
+from django.shortcuts import render, redirect, reverse
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from rest_framework_simplejwt.views import (
@@ -46,6 +48,12 @@ from snowdays23.views import GetParticipantByBraceletId, AssignBraceletToPartici
 
 def serve_react(request):
     return render(request, "index.html")
+
+def redirect_error(code, **kwargs):
+    return redirect("%s?%s" % (reverse("error"), urllib.parse.urlencode({
+        "code": code,
+        **kwargs
+    })))
 
 
 urlpatterns = [
@@ -61,6 +69,7 @@ urlpatterns = [
     path('api/payments/', include('sd23payments.urls')),
 
     path('not-found', serve_react, name="not-found"),
+    path('error', serve_react, name="error"),
     re_path(r"^$", serve_react),
     re_path(r"^(?:.*)/?$", serve_react),
 ]

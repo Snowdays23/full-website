@@ -110,6 +110,7 @@ DATABASES = {
 
 
 EMAIL_BACKEND = 'post_office.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 POST_OFFICE = {
     "DEFAULT_PRIORITY" : "medium",
@@ -173,11 +174,14 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# Regex to validate bracelet ID (Mifare Ultralight 8 byte UID, hex)
-BRACELET_ID_REGEX = "[0-9_a-f]{16}"
+# Regex to validate bracelet ID (Mifare Ultralight 7/8 byte UID, hex)
+BRACELET_ID_REGEX = "[0-9_a-f]{14,16}"
 
 # Regex to validate phone numbers (for this use case): +<prefix 2 or 3 digits long> <number 3 to 13 digits long>
 PHONE_NUMBER_REGEX = "\+[0-9]{2,3} [0-9]{3,13}"
+
+# Expiration delta for payment url of internal participants
+INTERNALS_EXPIRATION_DELTA = datetime.timedelta(hours=2)
 
 
 # In the Heroku environment
@@ -190,6 +194,11 @@ if "DATABASE_URL" in os.environ:
 
     # Receive Stripe API secret as environment variable
     STRIPE_SECRET_API_KEY = os.environ["STRIPE_SK"]
+
+    EMAIL_HOST_USER = os.environ["ARUBA_EMAIL_USER"]
+    EMAIL_HOST_PASSWORD = os.environ["ARUBA_EMAIL_PASSWORD"]
+
+    HOST = os.environ["HOST"]
 
 
 STRIPE_CHECKOUT_SUCCESS_URL = "http://localhost:8000/api/payments/order/%s/stripe/success"
