@@ -16,9 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import secrets
-import urllib.parse
-
-from django.shortcuts import redirect
 
 def generate_sd_order_id():
     return secrets.token_hex(16)
