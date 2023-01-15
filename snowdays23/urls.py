@@ -50,10 +50,10 @@ def serve_react(request):
     return render(request, "index.html")
 
 def redirect_error(code, **kwargs):
-    return redirect("error") + "?" + urllib.parse.urlencode({
+    return redirect("%s?%s" % (reverse("error"), urllib.parse.urlencode({
         "code": code,
         **kwargs
-    })
+    })))
 
 
 urlpatterns = [
