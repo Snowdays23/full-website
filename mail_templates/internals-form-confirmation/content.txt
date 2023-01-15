@@ -7,7 +7,7 @@ Welcome aboard the Snowdays23 squad! We can't wait to see you for the long-await
 This is a recap of the info you just inserted, in case you made a mistake, please contact us (at info@snowdays.it) so we can fix it before proceeding:
 
 Full Name: {{participant.first_name}} {{participant.last_name}}
-Gender:
+Gender: {{participant.gender}}
 Date of Birth: {{participant.dob|date:"d/M/Y"}}
 Phone Number: {{participant.phone}}
 Registration number (university ID): {{participant.student_nr}}

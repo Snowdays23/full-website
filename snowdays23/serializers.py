@@ -162,8 +162,16 @@ class NewParticipantSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(_("Email is not an allowed participant"))
 
         if unibz:
-            o = Order.objects.filter(participant__user__email__iexact=email)
-            if o.exists() and o.first().status != "pending":
+            # Testing whether an order for this participant (by email) already exists, meaning
+            # it is already registered and could be in the payment timespan.
+            # If such order exists, then raise iff it is not pending (so it has been paid) or is has
+            # been created less than two hours ago (user has still time to pay).
+            o = Order.objects.filter(
+                participant__user__email__iexact=email,
+            )
+            if o.exists() and (o.first().status != "pending" or o.created >= datetime.datetime.now(
+                tz=o.created.tzinfo
+            ) - settings.INTERNALS_EXPIRATION_DELTA):
                 raise serializers.ValidationError(_("Email is already registered"))
         elif User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError(_("Email is already registered"))
@@ -221,6 +229,8 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             can_enrol_helpers = InternalUserType.can_enrol_type("helper")
             can_enrol_hosts = InternalUserType.can_enrol_type("host", guests)
             if is_host:
+                if guests < 1:
+                    raise serializers.ValidationError(_("Invalid number of guests"))
                 if not can_enrol_hosts:
                     raise serializers.ValidationError(_("No host slots left: try reducing the number of guests"))
                 user_types.append("host")
