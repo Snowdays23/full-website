@@ -61,7 +61,7 @@ you specified the following additional notes about your eating needs: {{particip
 Once you made sure that all your details are correct, you're ready to go!
 
 Click on the following link to get to our checkout page.  
-Here it is: {{checkout_url}}
+Here it is: {{host}}{{checkout_url}}
 
 We want to remind you that you will pay full price now but you will get back the amount you are entitled to depending on your discount, by the 20th of March 2023. 
 
