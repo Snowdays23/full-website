@@ -169,7 +169,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             o = Order.objects.filter(
                 participant__user__email__iexact=email,
             )
-            if o.exists() and (o.first().status != "pending" or o.created >= datetime.datetime.now(
+            if o.exists() and (o.first().status != "pending" or o.first().created >= datetime.datetime.now(
                 tz=o.created.tzinfo
             ) - settings.INTERNALS_EXPIRATION_DELTA):
                 raise serializers.ValidationError(_("Email is already registered"))
