@@ -45,7 +45,9 @@ class CreateStripeCheckout(View):
 
         if order.participant.internal and order.participant.internal_type.name != "alumnus":
             if datetime.datetime.now(tz=order.created.tzinfo) - order.created > settings.INTERNALS_EXPIRATION_DELTA:
-                return f"{redirect('error')}?{urllib.parse.urlencode('code=454')}"
+                return f"{redirect('error')}?{urllib.parse.urlencode({
+                    "code": 454
+                })}"
 
         if order.status == "paid":
             return redirect("not-found")
@@ -84,7 +86,10 @@ class CreateStripeCheckout(View):
         order.save()
 
         if multiple_sessions:
-            return f"{redirect('error')}?{urllib.parse.urlencode(f'code=450&link={session.url}')}"
+            return f"{redirect('error')}?{urllib.parse.urlencode({
+                "code": 450,
+                "link": session.url
+            })}"
         return redirect(session.url)
 
 
@@ -102,20 +107,26 @@ class StripeCheckoutCompleted(View):
             payment_intent = stripe.payment_intent.PaymentIntent.retrieve(session.payment_intent)
         except Exception as e:
             print(f"Could not retrieve payment status: {e!r}")
-            return f"{redirect('error')}?{urllib.parse.urlencode('code=451')}"
+            return f"{redirect('error')}?{urllib.parse.urlencode({
+                "code": 451
+            })}"
         
         print(payment_intent)
 
         if not payment_intent.status == "requires_capture":
             print(f"PaymentIntent in invalid status to be captured: {payment_intent.status}")
-            return f"{redirect('error')}?{urllib.parse.urlencode('code=452')}"
+            return f"{redirect('error')}?{urllib.parse.urlencode({
+                "code": 452
+            })}"
 
         try:
             capture = payment_intent.capture()
             print("captured")
         except Exception as e:
             print(f"Could not capture payment: {e!r}")
-            return f"{redirect('error')}?{urllib.parse.urlencode('code=453')}"
+            return f"{redirect('error')}?{urllib.parse.urlencode({
+                "code": 453
+            })}"
         
         order.status = "paid"
         order.save()
