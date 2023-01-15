@@ -35,7 +35,7 @@ import urllib.parse
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, re_path, include
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from rest_framework_simplejwt.views import (
