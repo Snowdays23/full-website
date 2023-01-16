@@ -74,19 +74,35 @@ class CreateStripeCheckout(View):
             }
         ) for order_item in order.items.all()]]
 
-        session = stripe.checkout.Session.create(
-            success_url=settings.HOST + reverse("stripe-success", kwargs={
-                "sd_order_id": order.sd_order_id
-            }),
-            cancel_url=settings.HOST + reverse("stripe-cancel", kwargs={
-                "sd_order_id": order.sd_order_id
-            }),
-            line_items=items,
-            mode="payment",
-            payment_intent_data={
-                "capture_method": "manual"
-            }            
-        )
+        if order.participant.internal and order.participant.internal_type.name != "alumnus":
+            session = stripe.checkout.Session.create(
+                success_url=settings.HOST + reverse("stripe-success", kwargs={
+                    "sd_order_id": order.sd_order_id
+                }),
+                cancel_url=settings.HOST + reverse("stripe-cancel", kwargs={
+                    "sd_order_id": order.sd_order_id
+                }),
+                line_items=items,
+                mode="payment",
+                payment_intent_data={
+                    "capture_method": "manual"
+                },
+                expires_at=datetime.datetime.now() + settings.INTERNALS_EXPIRATION_DELTA
+            )
+        else:
+            session = stripe.checkout.Session.create(
+                success_url=settings.HOST + reverse("stripe-success", kwargs={
+                    "sd_order_id": order.sd_order_id
+                }),
+                cancel_url=settings.HOST + reverse("stripe-cancel", kwargs={
+                    "sd_order_id": order.sd_order_id
+                }),
+                line_items=items,
+                mode="payment",
+                payment_intent_data={
+                    "capture_method": "manual"
+                }
+            )
         order.stripe_order_id = session.id
         order.save()
 
