@@ -287,7 +287,6 @@ class InternalUserType(models.Model):
                 )
             )
         ).aggregate(Sum('guests'))['guests__sum']
-        print(hosts)
         if not hosts:
             hosts = 0
 
