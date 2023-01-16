@@ -52,6 +52,13 @@ class CreateStripeCheckout(View):
             return redirect("not-found")
         
         if order.stripe_order_id:
+            if order.participant.internal:
+                try:
+                    session = stripe.checkout.Session.retrieve(order.stripe_order_id)
+                    return redirect(session.url)
+                except:
+                    # Session could not be retrieved: create a new one
+                    pass
             multiple_sessions = True
         else:
             multiple_sessions = False
