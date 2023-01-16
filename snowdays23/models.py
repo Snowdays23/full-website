@@ -20,6 +20,8 @@ from django.db.models import Q, Sum
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+import datetime
+
 
 class University(models.Model):
     slug = models.CharField(
