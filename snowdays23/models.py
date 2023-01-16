@@ -275,7 +275,16 @@ class InternalUserType(models.Model):
         helpers = Participant.objects.filter(
             internal_type__name__icontains="helper"
         ).count()
-        hosts = InternalUserType.objects.aggregate(Sum('guests'))['guests__sum']
+        hosts = InternalUserType.objects.filter(
+            Q(participant__isnull=False) & (
+                Q(participant__order__status="paid") | Q(
+                    participant__order__created__gt=datetime.datetime.now(
+                        tz=datetime.timezone.utc
+                    ) - settings.INTERNALS_EXPIRATION_DELTA
+                )
+            )
+        ).aggregate(Sum('guests'))['guests__sum']
+        print(hosts)
         if not hosts:
             hosts = 0
 

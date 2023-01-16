@@ -74,10 +74,15 @@ class UniversityAdmin(admin.ModelAdmin):
         ).count()
 
     def hosted(self, obj):
-        return Participant.objects.filter(
-            university=obj,
-            internal=True
-        ).aggregate(Sum('internal_type__guests'))['internal_type__guests__sum']
+        return InternalUserType.objects.filter(
+            Q(participant__isnull=False, internal=True, university=obj) & (
+                Q(participant__order__status="paid") | Q(
+                    participant__order__created__gt=datetime.datetime.now(
+                        tz=datetime.timezone.utc
+                    ) - settings.INTERNALS_EXPIRATION_DELTA
+                )
+            )
+        ).aggregate(Sum('guests'))['guests__sum']
 
     def rentals(self, obj):
         data = ""
