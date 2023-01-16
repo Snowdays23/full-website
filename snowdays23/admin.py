@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.contrib import admin
+from django.db.models import Sum, Count, Q
 from django.utils.html import format_html
 
 from snowdays23.models import Participant, University, Sport, MerchItem, EatingHabits, Gear, AllowedParticipant, AllowedAlumnus, InternalUserType, Residence
@@ -37,7 +38,6 @@ def register(model, **kw):
     admin.site.register(model, CustomAdmin)
 
 
-register(University)
 register(Sport)
 register(Gear)
 register(MerchItem)
@@ -55,7 +55,7 @@ register(
 
 
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display=("first_name", "last_name", "email", "university", "gear")
+    list_display = ("first_name", "last_name", "email", "university", "gear")
     search_fields = ("user__last_name__startswith", "user__email__icontains", )
 
     def gear(self, obj):
@@ -63,4 +63,35 @@ class ParticipantAdmin(admin.ModelAdmin):
             ", ".join([g.get_name_display() for g in obj.rented_gear.all()])
         )
 
+
+class UniversityAdmin(admin.ModelAdmin):
+    list_display = ("name", "helpers", "hosted", "rentals")
+
+    def helpers(self, obj):
+        return Participant.objects.filter(
+            university=obj, 
+            internal=True, 
+            internal_type__name__icontains="helper"
+        ).count()
+
+    def hosted(self, obj):
+        return Participant.objects.filter(
+            university=obj,
+            internal=True
+        ).aggregate(Sum('internal_type__guests'))['internal_type__guests__sum']
+
+    def rentals(self, obj):
+        data = ""
+        for gi in Gear.name.field.choices:
+            data += "%s: %s</br>" % (
+                gi[1], 
+                Participant.objects.filter(
+                    university=obj
+                ).aggregate(count=Count('rented_gear', filter=Q(
+                    rented_gear__name=gi[0]
+                )))['count']
+            )
+        return format_html(data)
+
 admin.site.register(Participant, ParticipantAdmin)
+admin.site.register(University, UniversityAdmin)
