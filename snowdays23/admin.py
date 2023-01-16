@@ -71,8 +71,8 @@ class UniversityAdmin(admin.ModelAdmin):
 
     def helpers(self, obj):
         return Participant.objects.filter(
-            university=obj, 
-            internal=True, 
+            university=obj,
+            internal=True,
             internal_type__name__icontains="helper"
         ).count()
 
@@ -105,7 +105,10 @@ class ResidenceAdmin(admin.ModelAdmin):
     list_display = ("full_address", "hosted")
 
     def hosted(self, obj):
-        return InternalUserType.objects.filter(participant__residence=obj).count()
+        return Participant.objects.filter(
+            residence=obj,
+            internal=True
+        ).aggregate(Sum('internal_type__guests'))['internal_type__guests__sum']
 
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(University, UniversityAdmin)

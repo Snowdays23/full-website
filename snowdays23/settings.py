@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'post_office',
     'snowdays23',
     'sd23payments',
-    'django_inlinecss'
+    'django_inlinecss',
+    'import_export'
 ]
 
 MIDDLEWARE = [

@@ -13,3 +13,4 @@ django-inlinecss
 python-dateutil
 pyisemail
 gunicorn
+django-import-export
