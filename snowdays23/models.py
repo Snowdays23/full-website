@@ -300,7 +300,9 @@ class InternalUserType(models.Model):
             return True
 
     def __str__(self):
-        if self.guests > 0:
+        if self.guests == 1:
+            return f"{self.name} (hosting 1 person)"
+        elif self.guests > 1:
             return f"{self.name} (hosting {self.guests} people)"
         return f"{self.name}"
 
