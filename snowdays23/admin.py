@@ -78,7 +78,7 @@ class UniversityAdmin(admin.ModelAdmin):
 
     def hosted(self, obj):
         return InternalUserType.objects.filter(
-            Q(participant__isnull=False, internal=True, university=obj) & (
+            Q(participant__isnull=False, participant__internal=True, participant__university=obj) & (
                 Q(participant__order__status="paid") | Q(
                     participant__order__created__gt=datetime.datetime.now(
                         tz=datetime.timezone.utc
