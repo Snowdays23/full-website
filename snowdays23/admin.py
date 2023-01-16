@@ -43,7 +43,6 @@ register(Gear)
 register(MerchItem)
 register(EatingHabits)
 register(InternalUserType)
-register(Residence)
 register(
     AllowedParticipant,
     search_fields=("email__icontains", )
@@ -93,5 +92,13 @@ class UniversityAdmin(admin.ModelAdmin):
             )
         return format_html(data)
 
+
+class ResidenceAdmin(admin.ModelAdmin):
+    list_display = ("full_address", "hosted")
+
+    def hosted(self, obj):
+        return InternalUserType.objects.filter(participant__residence=obj).count()
+
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(University, UniversityAdmin)
+admin.site.register(Residence, ResidenceAdmin)
