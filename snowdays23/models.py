@@ -273,11 +273,8 @@ class InternalUserType(models.Model):
     def can_enrol_type(type, count=1):
         limits = {
             "helper": 65,
-            "host": 8
+            "host": 205
         }
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print("!!!!!!!!!!!!!! CHANGE HOST LIMITS BEFORE DEPLOYING !!!!!!!!!!!!!!")
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         helpers = Participant.objects.filter(
             internal_type__name__icontains="helper"
         ).count()
