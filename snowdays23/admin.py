@@ -22,6 +22,9 @@ from django.conf import settings
 from django.db.models import Sum, Count, Q
 from django.utils.html import format_html
 
+from import_export import resources, fields
+from import_export.admin import ExportMixin
+
 from snowdays23.models import Participant, University, Sport, MerchItem, EatingHabits, Gear, AllowedParticipant, AllowedAlumnus, InternalUserType, Residence
 
 
@@ -56,7 +59,7 @@ register(
 )
 
 
-class ParticipantAdmin(admin.ModelAdmin):
+class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ("first_name", "last_name", "email", "university", "gear", "internal_type")
     search_fields = ("user__last_name__startswith", "user__email__icontains", )
 

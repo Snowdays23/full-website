@@ -37,5 +37,12 @@ def register(model, **kw):
     admin.site.register(model, CustomAdmin)
 
 
-register(Order)
+register(
+    Order,
+    search_fields=(
+        'participant__user__last_name__icontains', 
+        'participant__user__email__icontains',
+        'sd_order_id__icontains'
+    )
+)
 register(BillableItem)
