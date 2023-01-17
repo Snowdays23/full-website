@@ -146,6 +146,10 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     is_host = serializers.BooleanField(required=False)
     guests = serializers.IntegerField(required=False)
 
+    def __init__(self, **kwargs):
+        self._skip_student_nr_check = False
+        super().__init__(**kwargs)
+
     def validate_university(self, slug):
         if not slug:
             raise serializers.ValidationError(_("University code is not valid"))
@@ -173,6 +177,11 @@ class NewParticipantSerializer(serializers.ModelSerializer):
                 tz=o.first().created.tzinfo
             ) - settings.INTERNALS_EXPIRATION_DELTA):
                 raise serializers.ValidationError(_("Email is already registered"))
+            elif o.exists():
+                # if order exists (participant already registered) but is has not been paid and
+                # the payment timespan has ended (expired), the registration number check has to
+                # be skipped, as participant can enroll again and old participant will be replaced
+                self._skip_student_nr_check = True
         elif User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError(_("Email is already registered"))
         return email
@@ -190,7 +199,9 @@ class NewParticipantSerializer(serializers.ModelSerializer):
     def validate(self, data):
         university_code = data.get('university')
         student_nr = data.get('student_nr')
-        if Participant.objects.filter(university__slug=university_code, student_nr=student_nr).exists():
+        if Participant.objects.filter(
+            university__slug=university_code, student_nr=student_nr
+        ).exists() and not self._skip_student_nr_check:
             raise serializers.ValidationError(_("Duplicate student number within the same university"))
 
         email = data.get('email')
