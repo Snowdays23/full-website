@@ -123,6 +123,24 @@ class ParticipantResourceWithCatering(ParticipantResource):
     def dehydrate_gluten_intolerant(self, instance):
         return "YES" if instance.eating_habits.gluten_free else "NO"
 
+    def after_export(self, queryset, data, *args, **kwargs):
+        data.append(["" for _ in range(len(self.Meta.export_order))])
+        
+        row = ["TOTALI"] + ["" for _ in range(len(self.Meta.export_order) - 1)]
+        row[self.Meta.export_order.index('vegan')] = str(
+            queryset.filter(eating_habits__vegan=True).count()
+        )
+        row[self.Meta.export_order.index('vegetarian')] = str(
+            queryset.filter(eating_habits__vegetarian=True).count()
+        )
+        row[self.Meta.export_order.index('gluten_intolerant')] = str(
+            queryset.filter(eating_habits__gluten_free=True).count()
+        )
+        row[self.Meta.export_order.index('lactose_intolerant')] = str(
+            queryset.filter(eating_habits__lactose_free=True).count()
+        )
+        data.append(row)
+
     class Meta:
         model = Participant
         exclude = (
@@ -156,14 +174,27 @@ class ParticipantResourceWithCatering(ParticipantResource):
             'vegetarian',
             'vegan',
             'gluten_intolerant',
-            'lactose_intolerant'
+            'lactose_intolerant',
+            'additional_notes'
         )
 
 
 class ParticipantResourceWithSport(ParticipantResource):
-
     def dehydrate_rented_gear(self, instance):
         return ", ".join(sorted([g.get_name_display() for g in instance.rented_gear.all()]))
+
+    def after_export(self, queryset, data, *args, **kwargs):
+        data.append(["" for _ in range(len(self.Meta.export_order))])
+        data.append(["TOTALI"] + ["" for _ in range(len(self.Meta.export_order) - 1)])
+        data.append(["" for _ in range(self.Meta.export_order.index('rented_gear'))] + [
+            "Totals: " + ", ".join([g[1] + ": " + str(queryset.aggregate(
+                count=Count('rented_gear', 
+                    filter=Q(
+                        rented_gear__name=g[0]
+                    )
+                )
+            )['count']) for g in Gear.name.field.choices])
+        ] + ["" for _ in range(len(self.Meta.export_order) - 1 - self.Meta.export_order.index('rented_gear'))])
 
     class Meta:
         model = Participant
