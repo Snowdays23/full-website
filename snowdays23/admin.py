@@ -185,8 +185,7 @@ class ParticipantResourceWithSport(ParticipantResource):
 
     def after_export(self, queryset, data, *args, **kwargs):
         data.append(["" for _ in range(len(self.Meta.export_order))])
-        data.append(["TOTALI"] + ["" for _ in range(len(self.Meta.export_order) - 1)])
-        data.append(["" for _ in range(self.Meta.export_order.index('rented_gear'))] + [
+        data.append(["TOTALI"] + ["" for _ in range(self.Meta.export_order.index('rented_gear') - 1)] + [
             "Totals: " + ", ".join([g[1] + ": " + str(queryset.aggregate(
                 count=Count('rented_gear', 
                     filter=Q(
