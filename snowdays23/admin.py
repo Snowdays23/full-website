@@ -163,7 +163,7 @@ class ParticipantResourceWithCatering(ParticipantResource):
 class ParticipantResourceWithSport(ParticipantResource):
 
     def dehydrate_rented_gear(self, instance):
-        return ", ".join([g.get_name_display() for g in instance.rented_gear.all()])
+        return ", ".join(sorted([g.get_name_display() for g in instance.rented_gear.all()]))
 
     class Meta:
         model = Participant
