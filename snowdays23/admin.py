@@ -18,11 +18,12 @@
 import datetime
 
 from django.contrib import admin
+from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Sum, Count, Q
 from django.utils.html import format_html
 
-from import_export import resources, fields
+from import_export import resources, fields, widgets
 from import_export.admin import ExportMixin
 
 from snowdays23.models import Participant, University, Sport, MerchItem, EatingHabits, Gear, AllowedParticipant, AllowedAlumnus, InternalUserType, Residence
@@ -58,8 +59,148 @@ register(
     search_fields=("email__icontains", )
 )
 
+class ParticipantResource(resources.ModelResource):
+    first_name = fields.Field(
+        column_name="first_name",
+        attribute="user",
+        widget=widgets.ForeignKeyWidget(User, "first_name")
+    )
+
+    last_name = fields.Field(
+        column_name="last_name",
+        attribute="user",
+        widget=widgets.ForeignKeyWidget(User, "last_name")
+    )
+
+    email = fields.Field(
+        column_name="email",
+        attribute="user",
+        widget=widgets.ForeignKeyWidget(User, "email")
+    )
+
+    def dehydrate_university(self, instance):
+        return instance.university.name
+
+    def dehydrate_dob(self, instance):
+        return instance.dob.strftime("%d/%m/%y")
+
+    def dehydrate_eating_habits(self, eating_habits):
+        return "LDDD"
+
+    def export(self, queryset=None, *args, **kwargs):
+        return super().export(None, *args, **kwargs)
+
+    def get_queryset(self):
+        return Participant.objects.filter(internal=False)
+
+
+class ParticipantResourceWithCatering(ParticipantResource):
+    vegan = fields.Field(
+        column_name="vegan"
+    )
+
+    vegetarian = fields.Field(
+        column_name="vegetarian"
+    )
+
+    lactose_intolerant = fields.Field(
+        column_name="lactose_intolerant"
+    )
+
+    gluten_intolerant = fields.Field(
+        column_name="gluten_intolerant"
+    )
+
+    def dehydrate_vegan(self, instance):
+        return "YES" if instance.eating_habits.vegan else "NO"
+
+    def dehydrate_vegetarian(self, instance):
+        return "YES" if instance.eating_habits.vegetarian else "NO"
+
+    def dehydrate_lactose_intolerant(self, instance):
+        return "YES" if instance.eating_habits.lactose_free else "NO"
+
+    def dehydrate_gluten_intolerant(self, instance):
+        return "YES" if instance.eating_habits.gluten_free else "NO"
+
+    class Meta:
+        model = Participant
+        exclude = (
+            'id',
+            'user',
+            'internal',
+            'internal_type',
+            'eating_habits',
+            'policies',
+            'residence',
+            'room_nr',
+            'schlafi',
+            'bracelet_id',
+            'height',
+            'weight',
+            'shoe_size',
+            'helmet_size',
+            'rented_gear',
+            'needs_accomodation',
+            'selected_sport'
+        )
+        export_order = (
+            'first_name',
+            'last_name',
+            'email',
+            'dob',
+            'gender',
+            'phone',
+            'university',
+            'student_nr',
+            'vegetarian',
+            'vegan',
+            'gluten_intolerant',
+            'lactose_intolerant'
+        )
+
+
+class ParticipantResourceWithSport(ParticipantResource):
+
+    def dehydrate_rented_gear(self, instance):
+        return ", ".join([g.get_name_display() for g in instance.rented_gear.all()])
+
+    class Meta:
+        model = Participant
+        exclude = (
+            'id',
+            'user',
+            'internal',
+            'internal_type',
+            'eating_habits',
+            'policies',
+            'residence',
+            'room_nr',
+            'schlafi',
+            'bracelet_id',
+            'needs_accomodation',
+            'additional_notes'
+        )
+        export_order = (
+            'first_name',
+            'last_name',
+            'email',
+            'dob',
+            'gender',
+            'phone',
+            'university',
+            'student_nr',
+            'selected_sport',
+            'height',
+            'weight',
+            'shoe_size',
+            'helmet_size',
+            'rented_gear'
+        )
+
 
 class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
+    resource_classes = [ParticipantResourceWithCatering, ParticipantResourceWithSport]
     list_display = ("first_name", "last_name", "email", "university", "gear", "internal_type")
     search_fields = ("user__last_name__startswith", "user__email__icontains", )
 
