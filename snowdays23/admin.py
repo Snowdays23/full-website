@@ -84,9 +84,6 @@ class ParticipantResource(resources.ModelResource):
     def dehydrate_dob(self, instance):
         return instance.dob.strftime("%d/%m/%y")
 
-    def dehydrate_eating_habits(self, eating_habits):
-        return "LDDD"
-
     def export(self, queryset=None, *args, **kwargs):
         return super().export(None, *args, **kwargs)
 
@@ -229,8 +226,44 @@ class ParticipantResourceWithSport(ParticipantResource):
         )
 
 
+class ParticipantResourceWithPersonalInfo(ParticipantResource):
+    
+    class Meta:
+        model = Participant
+        exclude = (
+            'id',
+            'user',
+            'internal',
+            'internal_type',
+            'eating_habits',
+            'policies',
+            'residence',
+            'room_nr',
+            'schlafi',
+            'bracelet_id',
+            'height',
+            'weight',
+            'shoe_size',
+            'helmet_size',
+            'additional_notes',
+            'rented_gear'
+        )
+        export_order = (
+            'first_name',
+            'last_name',
+            'email',
+            'dob',
+            'gender',
+            'phone',
+            'university',
+            'student_nr',
+            'selected_sport',
+            'needs_accomodation'
+        )
+
+
 class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
-    resource_classes = [ParticipantResourceWithCatering, ParticipantResourceWithSport]
+    resource_classes = [ParticipantResourceWithCatering, ParticipantResourceWithSport, ParticipantResourceWithPersonalInfo]
     list_display = ("first_name", "last_name", "email", "university", "gear", "internal_type")
     search_fields = ("user__last_name__startswith", "user__email__icontains", )
 
