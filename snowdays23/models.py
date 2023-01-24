@@ -272,7 +272,7 @@ class InternalUserType(models.Model):
     """
     def can_enrol_type(type, count=1):
         limits = {
-            "full": 2,
+            "full": 150,
             "helper": 65,
             "host": 205
         }
