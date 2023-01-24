@@ -239,6 +239,7 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             is_helper = data['is_helper']
             can_enrol_helpers = InternalUserType.can_enrol_type("helper")
             can_enrol_hosts = InternalUserType.can_enrol_type("host", guests)
+            can_enrol_full = InternalUserType.can_enrol_type("full")
             if is_host:
                 if guests < 1:
                     raise serializers.ValidationError(_("Invalid number of guests"))
@@ -251,9 +252,12 @@ class NewParticipantSerializer(serializers.ModelSerializer):
                 if not can_enrol_helpers:
                     raise serializers.ValidationError(_("No helper slots left"))
                 user_types.append("helper")
-            if not is_host and not is_helper and (can_enrol_hosts or can_enrol_helpers):
-                raise serializers.ValidationError(_("Only enrolling helpers and hosts"))
-            
+            # if not is_host and not is_helper and (can_enrol_hosts or can_enrol_helpers):
+            #     raise serializers.ValidationError(_("Only enrolling helpers and hosts"))
+            if not is_host and not is_helper:
+                if not can_enrol_full:
+                    raise serializers.ValidationError(_("No full price slots left"))
+
             user_type = "+".join(user_types) if len(user_types) > 0 else "full"
             
             if data['residence']['is_college']:

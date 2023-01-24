@@ -272,9 +272,13 @@ class InternalUserType(models.Model):
     """
     def can_enrol_type(type, count=1):
         limits = {
+            "full": 150,
             "helper": 65,
             "host": 205
         }
+        full = Participant.objects.filter(
+            internal_type__name="full"
+        ).count()
         helpers = Participant.objects.filter(
             internal_type__name__icontains="helper"
         ).count()
@@ -296,8 +300,10 @@ class InternalUserType(models.Model):
             return hosts + count <= limits["host"]
         elif type == "host+helper":
             return helpers + count <= limits["helper"] and hosts + count <= limits["host"]
+        elif type == "full":
+            return full + count <= limits["full"]
         else:
-            return True
+            return False
 
     def __str__(self):
         if self.guests == 1:
