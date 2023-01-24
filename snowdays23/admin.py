@@ -59,6 +59,56 @@ register(
     search_fields=("email__icontains", )
 )
 
+
+class ExportSportMixin:
+    def dehydrate_rented_gear(self, instance):
+        return ", ".join(sorted([g.get_name_display() for g in instance.rented_gear.all()]))
+
+    def after_export(self, queryset, data, *args, **kwargs):
+        data.append(["" for _ in range(len(self.Meta.export_order))])
+        data.append(["TOTALI"] + ["" for _ in range(self.Meta.export_order.index('rented_gear') - 1)] + [
+            "Totals: " + ", ".join([g[1] + ": " + str(queryset.aggregate(
+                count=Count('rented_gear', 
+                    filter=Q(
+                        rented_gear__name=g[0]
+                    )
+                )
+            )['count']) for g in Gear.name.field.choices])
+        ] + ["" for _ in range(len(self.Meta.export_order) - 1 - self.Meta.export_order.index('rented_gear'))])
+
+
+class ExportCateringMixin:
+    def dehydrate_vegan(self, instance):
+        return "YES" if instance.eating_habits.vegan else "NO"
+
+    def dehydrate_vegetarian(self, instance):
+        return "YES" if instance.eating_habits.vegetarian else "NO"
+
+    def dehydrate_lactose_intolerant(self, instance):
+        return "YES" if instance.eating_habits.lactose_free else "NO"
+
+    def dehydrate_gluten_intolerant(self, instance):
+        return "YES" if instance.eating_habits.gluten_free else "NO"
+
+    def after_export(self, queryset, data, *args, **kwargs):
+        data.append(["" for _ in range(len(self.Meta.export_order))])
+        
+        row = ["TOTALI"] + ["" for _ in range(len(self.Meta.export_order) - 1)]
+        row[self.Meta.export_order.index('vegan')] = str(
+            queryset.filter(eating_habits__vegan=True).count()
+        )
+        row[self.Meta.export_order.index('vegetarian')] = str(
+            queryset.filter(eating_habits__vegetarian=True).count()
+        )
+        row[self.Meta.export_order.index('gluten_intolerant')] = str(
+            queryset.filter(eating_habits__gluten_free=True).count()
+        )
+        row[self.Meta.export_order.index('lactose_intolerant')] = str(
+            queryset.filter(eating_habits__lactose_free=True).count()
+        )
+        data.append(row)
+
+
 class ParticipantResource(resources.ModelResource):
     first_name = fields.Field(
         column_name="first_name",
@@ -91,7 +141,7 @@ class ParticipantResource(resources.ModelResource):
         return Participant.objects.filter(internal=False)
 
 
-class ParticipantResourceWithCatering(ParticipantResource):
+class ParticipantResourceWithCatering(ExportCateringMixin, ParticipantResource):
     vegan = fields.Field(
         column_name="vegan"
     )
@@ -107,36 +157,6 @@ class ParticipantResourceWithCatering(ParticipantResource):
     gluten_intolerant = fields.Field(
         column_name="gluten_intolerant"
     )
-
-    def dehydrate_vegan(self, instance):
-        return "YES" if instance.eating_habits.vegan else "NO"
-
-    def dehydrate_vegetarian(self, instance):
-        return "YES" if instance.eating_habits.vegetarian else "NO"
-
-    def dehydrate_lactose_intolerant(self, instance):
-        return "YES" if instance.eating_habits.lactose_free else "NO"
-
-    def dehydrate_gluten_intolerant(self, instance):
-        return "YES" if instance.eating_habits.gluten_free else "NO"
-
-    def after_export(self, queryset, data, *args, **kwargs):
-        data.append(["" for _ in range(len(self.Meta.export_order))])
-        
-        row = ["TOTALI"] + ["" for _ in range(len(self.Meta.export_order) - 1)]
-        row[self.Meta.export_order.index('vegan')] = str(
-            queryset.filter(eating_habits__vegan=True).count()
-        )
-        row[self.Meta.export_order.index('vegetarian')] = str(
-            queryset.filter(eating_habits__vegetarian=True).count()
-        )
-        row[self.Meta.export_order.index('gluten_intolerant')] = str(
-            queryset.filter(eating_habits__gluten_free=True).count()
-        )
-        row[self.Meta.export_order.index('lactose_intolerant')] = str(
-            queryset.filter(eating_habits__lactose_free=True).count()
-        )
-        data.append(row)
 
     class Meta:
         model = Participant
@@ -176,22 +196,7 @@ class ParticipantResourceWithCatering(ParticipantResource):
         )
 
 
-class ParticipantResourceWithSport(ParticipantResource):
-    def dehydrate_rented_gear(self, instance):
-        return ", ".join(sorted([g.get_name_display() for g in instance.rented_gear.all()]))
-
-    def after_export(self, queryset, data, *args, **kwargs):
-        data.append(["" for _ in range(len(self.Meta.export_order))])
-        data.append(["TOTALI"] + ["" for _ in range(self.Meta.export_order.index('rented_gear') - 1)] + [
-            "Totals: " + ", ".join([g[1] + ": " + str(queryset.aggregate(
-                count=Count('rented_gear', 
-                    filter=Q(
-                        rented_gear__name=g[0]
-                    )
-                )
-            )['count']) for g in Gear.name.field.choices])
-        ] + ["" for _ in range(len(self.Meta.export_order) - 1 - self.Meta.export_order.index('rented_gear'))])
-
+class ParticipantResourceWithSport(ExportSportMixin, ParticipantResource):
     class Meta:
         model = Participant
         exclude = (
@@ -226,8 +231,30 @@ class ParticipantResourceWithSport(ParticipantResource):
         )
 
 
-class ParticipantResourceWithPersonalInfo(ParticipantResource):
-    
+class ParticipantResourceWithAllInfo(ExportSportMixin, ExportCateringMixin, ParticipantResource):
+    vegan = fields.Field(
+        column_name="vegan"
+    )
+
+    vegetarian = fields.Field(
+        column_name="vegetarian"
+    )
+
+    lactose_intolerant = fields.Field(
+        column_name="lactose_intolerant"
+    )
+
+    gluten_intolerant = fields.Field(
+        column_name="gluten_intolerant"
+    )
+
+    def dehydrate_needs_accomodation(self, instance):
+        return "YES" if instance.needs_accomodation else "NO"
+
+    def after_export(self, queryset, data, *args, **kwargs):
+        ExportSportMixin.after_export(self, queryset, data, *args, **kwargs)
+        ExportCateringMixin.after_export(self, queryset, data, *args, **kwargs)
+
     class Meta:
         model = Participant
         exclude = (
@@ -241,12 +268,6 @@ class ParticipantResourceWithPersonalInfo(ParticipantResource):
             'room_nr',
             'schlafi',
             'bracelet_id',
-            'height',
-            'weight',
-            'shoe_size',
-            'helmet_size',
-            'additional_notes',
-            'rented_gear'
         )
         export_order = (
             'first_name',
@@ -258,12 +279,22 @@ class ParticipantResourceWithPersonalInfo(ParticipantResource):
             'university',
             'student_nr',
             'selected_sport',
-            'needs_accomodation'
+            'needs_accomodation',
+            'vegetarian',
+            'vegan',
+            'gluten_intolerant',
+            'lactose_intolerant',
+            'additional_notes',
+            'height',
+            'weight',
+            'shoe_size',
+            'helmet_size',
+            'rented_gear'
         )
 
 
 class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
-    resource_classes = [ParticipantResourceWithCatering, ParticipantResourceWithSport, ParticipantResourceWithPersonalInfo]
+    resource_classes = [ParticipantResourceWithCatering, ParticipantResourceWithSport, ParticipantResourceWithAllInfo]
     list_display = ("first_name", "last_name", "email", "university", "gear", "internal_type")
     search_fields = ("user__last_name__startswith", "user__email__icontains", )
 
