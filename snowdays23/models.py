@@ -272,12 +272,18 @@ class InternalUserType(models.Model):
     """
     def can_enrol_type(type, count=1):
         limits = {
-            "full": 150,
+            "full": 2,
             "helper": 65,
             "host": 205
         }
         full = Participant.objects.filter(
-            internal_type__name="full"
+            Q(internal_type__name="full") & (
+                Q(order__status="paid") | Q(
+                    order__created__gt=datetime.datetime.now(
+                        tz=datetime.timezone.utc
+                    ) - settings.INTERNALS_EXPIRATION_DELTA
+                )
+            )
         ).count()
         helpers = Participant.objects.filter(
             internal_type__name__icontains="helper"
