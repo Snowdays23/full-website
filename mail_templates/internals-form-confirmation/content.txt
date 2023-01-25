@@ -63,7 +63,9 @@ Once you made sure that all your details are correct, you're ready to go!
 Click on the following link to get to our checkout page.  
 Here it is: {{host}}{{checkout_url}}
 
+{% if participant.internal_type.name != "full" and participant.internal_type.name != "alumnus" %}
 We want to remind you that you will pay full price now but you will get back the amount you are entitled to depending on your discount, by the 20th of March 2023. 
+{% endif %}
 
 We kindly ask you to proceed as soon as possible! Be aware that you need to pay now, as the link for the payment will expire within two hours! 
 
