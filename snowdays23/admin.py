@@ -305,7 +305,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
 
 
 class UniversityAdmin(admin.ModelAdmin):
-    list_display = ("name", "helpers", "hosted", "rentals")
+    list_display = ("name", "helpers", "hosted", "full", "rentals")
 
     def helpers(self, obj):
         return Participant.objects.filter(
@@ -324,6 +324,13 @@ class UniversityAdmin(admin.ModelAdmin):
                 )
             )
         ).aggregate(Sum('guests'))['guests__sum']
+
+    def full(self, obj):
+        return Participant.objects.filter(
+            university=obj,
+            internal=True,
+            internal_type__name="full"
+        ).count()
 
     def rentals(self, obj):
         data = ""
