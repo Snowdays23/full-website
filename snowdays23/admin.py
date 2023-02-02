@@ -300,22 +300,22 @@ class ParticipantResourceWithAllInfo(ExportSportMixin, ExportCateringMixin, Part
         )
 
 
-class ExternalParticipantResourceWithCatering(ParticipantResourceWithCatering, ExportExternalsMixin):
+class ExternalParticipantResourceWithCatering(ExportExternalsMixin, ParticipantResourceWithCatering):
     pass
 
-class ExternalParticipantResourceWithSport(ParticipantResourceWithSport, ExportExternalsMixin):
+class ExternalParticipantResourceWithSport(ExportExternalsMixin, ParticipantResourceWithSport):
     pass
 
-class ExternalParticipantResourceWithAllInfo(ParticipantResourceWithAllInfo, ExportExternalsMixin):
+class ExternalParticipantResourceWithAllInfo(ExportExternalsMixin, ParticipantResourceWithAllInfo):
     pass
 
-class InternalParticipantResourceWithCatering(ParticipantResourceWithCatering, ExportInternalsMixin):
+class InternalParticipantResourceWithCatering(ExportInternalsMixin, ParticipantResourceWithCatering):
     pass
 
-class InternalParticipantResourceWithSport(ParticipantResourceWithSport, ExportInternalsMixin):
+class InternalParticipantResourceWithSport(ExportInternalsMixin, ParticipantResourceWithSport):
     pass
 
-class InternalParticipantResourceWithAllInfo(ParticipantResourceWithAllInfo, ExportInternalsMixin):
+class InternalParticipantResourceWithAllInfo(ExportInternalsMixin, ParticipantResourceWithAllInfo):
     pass
 
 class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
