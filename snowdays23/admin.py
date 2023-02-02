@@ -314,7 +314,7 @@ class InternalParticipantResourceWithCatering(ExportInternalsMixin, ParticipantR
 
 class InternalParticipantResourceWithSport(ExportInternalsMixin, ParticipantResourceWithSport):
     def get_queryset(self):
-        return super().get_queryset(self).filter(rented_gear__isnull=False)
+        return super().get_queryset().filter(rented_gear__isnull=False)
 
 class InternalParticipantResourceWithAllInfo(ExportInternalsMixin, ParticipantResourceWithAllInfo):
     pass
