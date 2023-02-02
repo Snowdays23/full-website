@@ -116,7 +116,7 @@ class ExportExternalsMixin:
 
 class ExportInternalsMixin:
     def get_queryset(self):
-        return Participant.objects.filter(internal=True)
+        return Participant.objects.filter(internal=True, order__isnull=False, order__status="paid")
 
 
 class ParticipantResource(resources.ModelResource):
