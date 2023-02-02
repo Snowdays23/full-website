@@ -61,7 +61,9 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         if orders.exists():
             orders.delete()
 
-        if participant.internal:
+        if participant.internal and participant.internal_type.name == "alumnus":
+            ticket = BillableItem.objects.get(slug="alumnus-ticket")
+        elif participant.internal:
             ticket = BillableItem.objects.get(slug="internal-ticket")
         else:
             ticket = BillableItem.objects.get(slug="ticket")

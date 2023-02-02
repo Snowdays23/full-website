@@ -241,6 +241,7 @@ class InternalUserType(models.Model):
         organizational tasks and/or hosting external participants.
 
         Full price for internals: €160.0
+        Alumni price: €120.0
         Helper price: €130.0
         Host price (one guest): €130.0
         Helper + Host price (one guest): €100.0
@@ -251,7 +252,7 @@ class InternalUserType(models.Model):
     def get_ticket_price(self):
         price = {
             "full": 16000, # Full Price
-            "alumnus": 16000, # Alumni
+            "alumnus": 12000, # Alumni
             "helper": 13000, # Helper
             "host": 13000, # Host (1 external)
             "host+helper": 10000 # Helper + Host (1 external)

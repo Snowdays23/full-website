@@ -109,6 +109,16 @@ class ExportCateringMixin:
         data.append(row)
 
 
+class ExportExternalsMixin:
+    def get_queryset(self):
+        return Participant.objects.filter(internal=False)
+
+
+class ExportInternalsMixin:
+    def get_queryset(self):
+        return Participant.objects.filter(internal=True)
+
+
 class ParticipantResource(resources.ModelResource):
     first_name = fields.Field(
         column_name="first_name",
@@ -136,9 +146,6 @@ class ParticipantResource(resources.ModelResource):
 
     def export(self, queryset=None, *args, **kwargs):
         return super().export(None, *args, **kwargs)
-
-    def get_queryset(self):
-        return Participant.objects.filter(internal=False)
 
 
 class ParticipantResourceWithCatering(ExportCateringMixin, ParticipantResource):
@@ -293,8 +300,33 @@ class ParticipantResourceWithAllInfo(ExportSportMixin, ExportCateringMixin, Part
         )
 
 
+class ExternalParticipantResourceWithCatering(ParticipantResourceWithCatering, ExportExternalsMixin):
+    pass
+
+class ExternalParticipantResourceWithSport(ParticipantResourceWithSport, ExportExternalsMixin):
+    pass
+
+class ExternalParticipantResourceWithAllInfo(ParticipantResourceWithAllInfo, ExportExternalsMixin):
+    pass
+
+class InternalParticipantResourceWithCatering(ParticipantResourceWithCatering, ExportInternalsMixin):
+    pass
+
+class InternalParticipantResourceWithSport(ParticipantResourceWithSport, ExportInternalsMixin):
+    pass
+
+class InternalParticipantResourceWithAllInfo(ParticipantResourceWithAllInfo, ExportInternalsMixin):
+    pass
+
 class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
-    resource_classes = [ParticipantResourceWithCatering, ParticipantResourceWithSport, ParticipantResourceWithAllInfo]
+    resource_classes = [
+        ExternalParticipantResourceWithCatering, 
+        ExternalParticipantResourceWithSport, 
+        ExternalParticipantResourceWithAllInfo,
+        InternalParticipantResourceWithCatering, 
+        InternalParticipantResourceWithSport, 
+        InternalParticipantResourceWithAllInfo,
+    ]
     list_display = ("first_name", "last_name", "email", "university", "gear", "internal_type")
     search_fields = ("user__last_name__startswith", "user__email__icontains", )
 
