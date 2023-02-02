@@ -157,6 +157,8 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             university = University.objects.get(slug=slug)
         except University.DoesNotExist:
             raise serializers.ValidationError(_("University code is not valid"))
+        if slug == "alumni":
+            self._skip_student_nr_check = True
         return slug
     
     def validate_email(self, email):
