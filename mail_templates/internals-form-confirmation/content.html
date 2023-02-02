@@ -40,7 +40,7 @@
                             <li>Gender: {{participant.gender}}</li>
                             <li>Date of Birth: {{participant.dob|date:"d/M/Y"}}</li>
                             <li>Phone Number: {{participant.phone}}</li>
-                            <li>Registration number (university ID): {{participant.student_nr}}</li>
+                            {% if participant.internal_type.name != "alumnus" %}<li>Registration number (university ID): {{participant.student_nr}}</li>{% endif %}
                         </ul>
 
                         <br/>

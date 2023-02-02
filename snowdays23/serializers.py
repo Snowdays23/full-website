@@ -157,8 +157,6 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             university = University.objects.get(slug=slug)
         except University.DoesNotExist:
             raise serializers.ValidationError(_("University code is not valid"))
-        if slug == "alumni":
-            self._skip_student_nr_check = True
         return slug
     
     def validate_email(self, email):
@@ -200,7 +198,15 @@ class NewParticipantSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         university_code = data.get('university')
+
+        if university_code == "alumni":
+            # student number is not provided with the alumni form, so the uniqueness
+            # constraint would fail, as all alumni will bear the (university: "alumni", student_nr: null)
+            # pair; generate a random token instead (not displayed in the confirmation email)
+            data['student_nr'] = secrets.token_hex(8)
+
         student_nr = data.get('student_nr')
+
         if Participant.objects.filter(
             university__slug=university_code, student_nr=student_nr
         ).exists() and not self._skip_student_nr_check:
