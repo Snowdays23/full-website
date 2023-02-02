@@ -111,12 +111,20 @@ class ExportCateringMixin:
 
 class ExportExternalsMixin:
     def get_queryset(self):
-        return Participant.objects.filter(internal=False)
+        return Participant.objects.filter(
+            internal=False,
+            order__isnull=False,
+            order__status="paid",
+        )
 
 
 class ExportInternalsMixin:
     def get_queryset(self):
-        return Participant.objects.filter(internal=True, order__isnull=False, order__status="paid")
+        return Participant.objects.filter(
+            internal=True, 
+            order__isnull=False, 
+            order__status="paid"
+        )
 
 
 class ParticipantResource(resources.ModelResource):
@@ -258,6 +266,15 @@ class ParticipantResourceWithAllInfo(ExportSportMixin, ExportCateringMixin, Part
     def dehydrate_needs_accomodation(self, instance):
         return "YES" if instance.needs_accomodation else "NO"
 
+    def dehydrate_residence(self, instance):
+        return instance.residence.full_address if instance.residence else "-"
+
+    def dehydrate_room_nr(self, instance):
+        return instance.room_nr if instance.room_nr else "-"
+
+    def dehydrate_internal_type(self, instance):
+        return str(instance.internal_type) if instance.internal_type else "-"
+
     def after_export(self, queryset, data, *args, **kwargs):
         ExportSportMixin.after_export(self, queryset, data, *args, **kwargs)
         ExportCateringMixin.after_export(self, queryset, data, *args, **kwargs)
@@ -267,14 +284,11 @@ class ParticipantResourceWithAllInfo(ExportSportMixin, ExportCateringMixin, Part
         exclude = (
             'id',
             'user',
-            'internal',
-            'internal_type',
             'eating_habits',
             'policies',
-            'residence',
-            'room_nr',
             'schlafi',
             'bracelet_id',
+            'internal',
         )
         export_order = (
             'first_name',
@@ -283,6 +297,7 @@ class ParticipantResourceWithAllInfo(ExportSportMixin, ExportCateringMixin, Part
             'dob',
             'gender',
             'phone',
+            'internal_type',
             'university',
             'student_nr',
             'selected_sport',
@@ -296,7 +311,9 @@ class ParticipantResourceWithAllInfo(ExportSportMixin, ExportCateringMixin, Part
             'weight',
             'shoe_size',
             'helmet_size',
-            'rented_gear'
+            'rented_gear',
+            'residence',
+            'room_nr',
         )
 
 
@@ -314,18 +331,23 @@ class InternalParticipantResourceWithCatering(ExportInternalsMixin, ParticipantR
 
 class InternalParticipantResourceWithSport(ExportInternalsMixin, ParticipantResourceWithSport):
     def get_queryset(self):
-        return super().get_queryset().filter(rented_gear__isnull=False)
+        return Participant.objects.filter(
+            internal=True,
+            order__isnull=False,
+            order__status="paid",
+            rented_gear__isnull=False
+        ).distinct()
 
 class InternalParticipantResourceWithAllInfo(ExportInternalsMixin, ParticipantResourceWithAllInfo):
     pass
 
 class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
     resource_classes = [
-        ExternalParticipantResourceWithCatering, 
-        ExternalParticipantResourceWithSport, 
+        ExternalParticipantResourceWithCatering,
+        ExternalParticipantResourceWithSport,
         ExternalParticipantResourceWithAllInfo,
-        InternalParticipantResourceWithCatering, 
-        InternalParticipantResourceWithSport, 
+        InternalParticipantResourceWithCatering,
+        InternalParticipantResourceWithSport,
         InternalParticipantResourceWithAllInfo,
     ]
     list_display = ("first_name", "last_name", "email", "university", "gear", "internal_type")
