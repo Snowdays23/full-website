@@ -384,8 +384,57 @@ class UniversityAdmin(admin.ModelAdmin):
         return Participant.objects.filter(
             university=obj,
             internal=True,
-            internal_type__name="full"
+            internal_type__name="full",
+            order__status="paid"
         ).count()
+
+    def distinct_types_counter(self, obj):
+        paid_internals = Participant.objects.filter(
+            university=obj,
+            internal=True,
+            order__status="paid"
+        )
+        alumni = paid_internals.filter(
+            internal_type__name="alumnus"
+        ).count()
+        host1 = paid_internals.filter(
+            internal_type__name="host",
+            internal_type__guests=1
+        ).count()
+        host2 = paid_internals.filter(
+            internal_type__name="host",
+            internal_type__guests=2
+        ).count()
+        host3 = paid_internals.filter(
+            internal_type__name="host",
+            internal_type__guests=3
+        ).count()
+        host4 = paid_internals.filter(
+            internal_type__name="host",
+            internal_type__guests=4
+        ).count()
+        helpers = paid_internals.filter(
+            internal_type__name="helper",
+        ).count()
+        helper_host1 = paid_internals.filter(
+            internal_type__name="host+helper",
+            internal_type__guests=1
+        ).count()
+        helper_host2 = paid_internals.filter(
+            internal_type__name="host+helper",
+            internal_type__guests=2
+        ).count()
+        helper_host3 = paid_internals.filter(
+            internal_type__name="host+helper",
+            internal_type__guests=3
+        ).count()
+        helper_host4 = paid_internals.filter(
+            internal_type__name="host+helper",
+            internal_type__guests=4
+        ).count()
+
+        return format_html(f"paid distinct counters:<br><b>Alumni:</b>{alumni}<br><b>Host 1:</b>{host1}<br><b>Host 2:</b>{host2}<br><b>Host 3:</b>{host3}<br><b>Host 4:</b>{host4}<br><b>Helpers:</b>{helpers}<br><b>Helper + Host 1:</b>{helper_host1}<br><b>Helper + Host 2:</b>{helper_host2}<br><b>Helper + Host 3:</b>{helper_host3}<br><b>Helper + Host 4:{helper_host4}</b>")
+        
 
     def rentals(self, obj):
         data = ""
