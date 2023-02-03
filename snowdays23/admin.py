@@ -360,7 +360,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
 
 
 class UniversityAdmin(admin.ModelAdmin):
-    list_display = ("name", "helpers", "hosted", "full", "rentals")
+    list_display = ("name", "helpers", "hosted", "full", "rentals", "distinct_types_counter")
 
     def helpers(self, obj):
         return Participant.objects.filter(
