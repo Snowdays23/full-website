@@ -28,7 +28,7 @@ class Command(BaseCommand):
         parser.add_argument('--dry-run', action='store_true')
 
     def handle(self, sd_order_id=None, dry_run=False, *args, **kwargs):
-        if not order:
+        if not sd_order_id:
             sys.exit(f"Usage: {sys.argv[0]} [--dry-run] <sd_order_id>")
         try:
             order = Order.objects.get(sd_order_id=sd_order_id)
