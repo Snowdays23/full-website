@@ -44,15 +44,19 @@ class CreateStripeCheckout(View):
         except Order.DoesNotExist:
             return redirect("not-found")
 
-        if order.participant.internal and order.participant.internal_type.name != "alumnus":
-            if datetime.datetime.now(tz=order.created.tzinfo) - order.created > settings.INTERNALS_EXPIRATION_DELTA:
+        if order.participant:
+            if order.participant.internal and order.participant.internal_type.name != "alumnus":
+                if datetime.datetime.now(tz=order.created.tzinfo) - order.created > settings.INTERNALS_EXPIRATION_DELTA:
+                    return redirect_error(454)
+        elif order.party_beast:
+            if datetime.datetime.now(tz=order.created.tzinfo) - order.created > settings.PARTY_BEASTS_EXPIRATION_DELTA:
                 return redirect_error(454)
 
         if order.status == "paid":
             return redirect("not-found")
         
         if order.stripe_order_id:
-            if order.participant.internal:
+            if order.party_beast or order.participant.internal:
                 try:
                     session = stripe.checkout.Session.retrieve(order.stripe_order_id)
                     return redirect(session.url)
@@ -74,7 +78,22 @@ class CreateStripeCheckout(View):
             }
         ) for order_item in order.items.all()]]
 
-        if order.participant.internal and order.participant.internal_type.name != "alumnus":
+        if order.party_beast:
+            session = stripe.checkout.Session.create(
+                success_url=settings.HOST + reverse("stripe-success", kwargs={
+                    "sd_order_id": order.sd_order_id
+                }),
+                cancel_url=settings.HOST + reverse("stripe-cancel", kwargs={
+                    "sd_order_id": order.sd_order_id
+                }),
+                line_items=items,
+                mode="payment",
+                payment_intent_data={
+                    "capture_method": "manual"
+                },
+                expires_at=datetime.datetime.now() + settings.PARTY_BEASTS_EXPIRATION_DELTA
+            )
+        elif order.participant.internal and order.participant.internal_type.name != "alumnus":
             session = stripe.checkout.Session.create(
                 success_url=settings.HOST + reverse("stripe-success", kwargs={
                     "sd_order_id": order.sd_order_id
@@ -137,17 +156,30 @@ class StripeCheckoutCompleted(View):
         order.status = "paid"
         order.save()
 
-        mail.send(
-            order.participant.user.email,
-            "Snowdays <noreply@snowdays.it>",
-            template="payment-confirmation",
-            context={
-                'host': settings.HOST,
-                'participant': order.participant,
-                'CODE': order.sd_order_id[27:]
-            },
-            priority='now'
-        )
+        if order.participant:
+            mail.send(
+                order.participant.user.email,
+                "Snowdays <noreply@snowdays.it>",
+                template="payment-confirmation",
+                context={
+                    'host': settings.HOST,
+                    'participant': order.participant,
+                    'CODE': order.sd_order_id[27:]
+                },
+                priority='now'
+            )
+        else:
+            mail.send(
+                order.party_beast.user.email,
+                "Snowdays <noreply@snowdays.it>",
+                template="party-payment-confirmation",
+                context={
+                    'host': settings.HOST,
+                    'party_beast': order.party_beast,
+                    'CODE': order.sd_order_id[27:]
+                },
+                priority='now'
+            )
         return redirect('/success-checkout')
 
 

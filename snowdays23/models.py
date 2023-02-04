@@ -538,3 +538,50 @@ class AllowedAlumnus(models.Model):
     
     class Meta:
         verbose_name_plural = _("Allowed alumni")
+
+
+class PartyBeast(models.Model):
+    user = models.OneToOneField(
+        "auth.User",
+        on_delete=models.CASCADE,
+        verbose_name=_("system user associated with this party beast")
+    )
+
+    phone = models.CharField(
+        max_length=16,
+        verbose_name=_("personal mobile number")
+    )
+
+    bracelet_id = models.CharField(
+        max_length=16,
+        verbose_name=_("UID of the RFID bracelet associated with this party beast"),
+        null=True,
+        blank=True
+    )
+
+    policies = models.ForeignKey(
+        Policies,
+        on_delete=models.PROTECT,
+        verbose_name=_("status of sign-up policies"),
+        null=True,
+        blank=True
+    )
+
+    @property
+    def first_name(self):
+        return self.user.first_name
+
+    @property
+    def last_name(self):
+        return self.user.last_name
+
+    @property
+    def email(self):
+        return self.user.email
+
+    @property
+    def username(self):
+        return self.user.username
+
+    def __str__(self):
+        return f"#{self.pk} [{self.bracelet_id}] {self.first_name} {self.last_name} <{self.email}>"

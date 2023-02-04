@@ -43,7 +43,12 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from snowdays23.views import GetParticipantByBraceletId, AssignBraceletToParticipant, ParticipantViewSet
+from snowdays23.views import (
+    GetParticipantByBraceletId, 
+    AssignBraceletToParticipant, 
+    ParticipantViewSet,
+    PartyBeastViewSet
+)
 
 
 def serve_react(request):
@@ -64,6 +69,10 @@ urlpatterns = [
         "get": "list",
         "post": "create"
     }), name="all_parts"),
+    path('api/partybeasts', PartyBeastViewSet.as_view({
+        "get": "list",
+        "post": "create"
+    }), name="all_party_beasts"),
     path('api/participant/<str:uid>', GetParticipantByBraceletId.as_view(), name="part_by_uid"),
     path('api/participant/<int:pk>/<str:uid>', AssignBraceletToParticipant.as_view(), name="uid_to_part"),
     path('api/payments/', include('sd23payments.urls')),

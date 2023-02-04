@@ -1,0 +1,87 @@
+{% load inlinecss %}
+{% load static %}
+{% inlinecss "snowdays23/css/email.css" %}
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>Snowdays23</title>
+ 	</head>
+	<body>
+            
+        <div class="row justify-content-center center mt-5 mb-4">
+            <img src="{{ host }}{% static 'snowdays23/img/email-logo.png' %}" class="mb-5" alt="logo" />
+        </div>
+        <p class="sans-serif h6 mb-5">
+
+         <div class="row justify-content-center h6 mt-5" >
+            
+            <div class="col-8 sans-serif">
+		    	        <br/>
+			            <br/>
+                        Ciao {{party_beast.first_name}} {{party_beast.last_name}},
+
+                        <br/>
+
+                        with this email we want to confirm that we have received your payment. We are looking forward to see you at the event!
+                                 
+                        <br/>
+                        <label class="h4"> <strong>Your ticket code: {{CODE}}</strong></label>
+                        <br/>
+                        
+                        For any problem or question, don't hesitate to contact us at info@snowdays.it
+                    
+                        <br/>
+                    </div>
+                    <br/>
+                    <br/>
+                    <br/>
+            
+                </p> 
+
+        </div>
+    
+        <div class="justify-content-center center sans-serif mt-5">
+            
+            <div class="col-10 center">
+                <strong class="center-text h3 blue">❄❄❄❄❄❄❄❄❄❄❄❄❄❄❄</strong>
+            </div>
+            <div class="w-100"></div>
+            
+            <br/>
+            
+            <div class="col-10 center">
+                <h1 class="center-text h1"><strong class="center-text">SNOWDAYS</strong></h1>
+            </div>
+            <div class="w-100"></div>
+            <div class="col-10 center">
+                <h5 class="center-text"><strong class="center-text"><span class="blue">❄</span> Europe's biggest winter sports event organised by students for students  <span class="blue">❄</span></strong></h5>
+            </div>
+            <div class="w-100"></div>
+            
+        </div>
+    
+        <br/>
+        <br/>
+        <br/>
+    
+        <div class="justify-content-center sans-serif mb-5 h6">
+            
+            <div class="col-8 h6">
+                <p class="h6">
+        
+                    C5.06 - Universitätsplatz / Piazza Università, 1
+                    <br/>
+                    I - 39100 Bozen/Bolzano
+                    <br/>
+                    IG: @snowdays.bolzano
+                    <br/>
+                    
+                </p>
+                
+            </div>
+
+        </div>
+	</body>
+</html>
+{% endinlinecss %}
