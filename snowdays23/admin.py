@@ -396,6 +396,10 @@ class UniversityAdmin(admin.ModelAdmin):
         )
         if paid_internals.count() == 0:
             return "-"
+        paid_externals = Participant.objects.filter(
+            internal=False,
+            order__status="paid"
+        ).count()
         alumni = paid_internals.filter(
             internal_type__name="alumnus"
         ).count()
@@ -435,7 +439,7 @@ class UniversityAdmin(admin.ModelAdmin):
             internal_type__guests=4
         ).count()
 
-        return format_html(f"paid distinct counters:<br><b>Alumni:</b> {alumni}<br><b>Host 1:</b> {host1}<br><b>Host 2:</b> {host2}<br><b>Host 3:</b> {host3}<br><b>Host 4:</b> {host4}<br><b>Helpers:</b> {helpers}<br><b>Helper + Host 1:</b> {helper_host1}<br><b>Helper + Host 2:</b> {helper_host2}<br><b>Helper + Host 3:</b> {helper_host3}<br><b>Helper + Host 4:</b> {helper_host4}")
+        return format_html(f"paid distinct counters:<br><b>Externals:</b> {paid_externals}<br><b>Alumni:</b> {alumni}<br><b>Host 1:</b> {host1}<br><b>Host 2:</b> {host2}<br><b>Host 3:</b> {host3}<br><b>Host 4:</b> {host4}<br><b>Helpers:</b> {helpers}<br><b>Helper + Host 1:</b> {helper_host1}<br><b>Helper + Host 2:</b> {helper_host2}<br><b>Helper + Host 3:</b> {helper_host3}<br><b>Helper + Host 4:</b> {helper_host4}")
         
 
     def rentals(self, obj):
