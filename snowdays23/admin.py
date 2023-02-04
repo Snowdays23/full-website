@@ -448,7 +448,8 @@ class UniversityAdmin(admin.ModelAdmin):
             data += "%s: %s</br>" % (
                 gi[1], 
                 Participant.objects.filter(
-                    university=obj
+                    university=obj,
+                    order__status="paid"
                 ).aggregate(count=Count('rented_gear', filter=Q(
                     rented_gear__name=gi[0]
                 )))['count']
