@@ -583,5 +583,20 @@ class PartyBeast(models.Model):
     def username(self):
         return self.user.username
 
+    def can_enrol(type="party-beast-pack"):
+        limits = {
+            "party-beast-pack": 100
+        }
+        party_beast_pack = PartyBeast.objects.filter(
+            Q(order__status="paid") | Q(
+                order__created__gt=datetime.datetime.now(
+                    tz=datetime.timezone.utc
+                ) - settings.PARTY_BEASTS_EXPIRATION_DELTA
+            )
+        ).count()
+        if type == "party-beast-pack":
+            return party_beast_pack + 1 <= limits["party-beast-pack"]
+        return False
+
     def __str__(self):
         return f"#{self.pk} [{self.bracelet_id}] {self.first_name} {self.last_name} <{self.email}>"

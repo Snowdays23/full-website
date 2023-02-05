@@ -414,6 +414,11 @@ class PartyBeastSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("Phone number is not valid"))
         return phone
 
+    def validate(self, data):
+        if not PartyBeast.can_enrol():
+            raise serializers.ValidationError(_("No slots left"))
+        return data
+
     def create(self, validated_data):
         email = validated_data.pop('email')
         first_name = validated_data.pop('first_name')

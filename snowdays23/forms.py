@@ -77,6 +77,11 @@ class PartyBeastForm(forms.ModelForm):
     def clean_paid(self):
         return self.cleaned_data.get('paid', False)
 
+    def clean(self):
+        if not PartyBeast.can_enrol():
+            raise ValidationError(_("No slots left"))
+        return self.cleaned_data
+
     def save(self, commit=True):
         instance = super(PartyBeastForm, self).save(commit=False)
         instance.user = User.objects.update_or_create(
