@@ -378,7 +378,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
 
 
 class UniversityAdmin(admin.ModelAdmin):
-    list_display = ("name", "helpers", "hosted", "full", "rentals", "distinct_types_counter")
+    list_display = ("name", "helpers", "hosted", "full", "rentals", "distinct_types_counter", "party_beasts")
 
     def helpers(self, obj):
         return Participant.objects.filter(
@@ -405,6 +405,20 @@ class UniversityAdmin(admin.ModelAdmin):
             internal_type__name="full",
             order__status="paid"
         ).count()
+
+    def party_beasts(self, obj):
+        if not obj.slug == "unibz":
+            return 0
+        paid = PartyBeast.objects.filter(
+            order__status="paid"
+        ).count()
+        payable = PartyBeast.objects.filter(
+            order__status="pending",
+            order__created__gt=datetime.datetime.now(
+                tz=datetime.timezone.utc
+            ) - settings.PARTY_BEASTS_EXPIRATION_DELTA
+        ).count()
+        return format_html(f"<b>Total</b>: {paid + payable}<br><br><b>Paid</b>: {paid}<br><b>Valid pending</b>: {payable}")
 
     def distinct_types_counter(self, obj):
         paid_internals = Participant.objects.filter(
