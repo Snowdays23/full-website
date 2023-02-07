@@ -34,11 +34,11 @@ class Command(BaseCommand):
             sys.exit(f"Usage: {sys.argv[0]} <old_participant_email> <new_participant_email>")
         old_participant, new_participant = participants
         try:
-            old_participant = Participant.objects.get(user__email=old_participant)
+            old_participant = Participant.objects.get(user__email__iexact=old_participant)
         except Participant.DoesNotExist:
             sys.exit(f"Error: no participant found with email {old_participant}")
         try:
-            new_participant = Participant.objects.get(user__email=new_participant)
+            new_participant = Participant.objects.get(user__email__iexact=new_participant)
         except Participant.DoesNotExist:
             sys.exit(f"Error: no participant found with email {new_participant}")
         
