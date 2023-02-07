@@ -12,7 +12,7 @@ Once you made sure that all your details are correct, you're ready to go!
 Click on the following link to get to our checkout page.  
 Here it is: {{host}}{{checkout_url}}
 
-We kindly ask you to proceed as soon as possible! Be aware that you need to pay within the 15th of February 2023 at midnight.
+We kindly ask you to proceed as soon as possible! Be aware that you need to pay now to secure your entrance, as the link for the payment will expire within 24 hours!
 
 We cannot wait to see you go crazy on the dance floor!
 Because remember, there are no days like Snowdays!
