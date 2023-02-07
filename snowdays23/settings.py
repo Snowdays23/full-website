@@ -182,8 +182,9 @@ BRACELET_ID_REGEX = "[0-9_a-f]{14,16}"
 # Regex to validate phone numbers (for this use case): +<prefix 2 or 3 digits long> <number 3 to 13 digits long>
 PHONE_NUMBER_REGEX = "\+[0-9]{2,3} [0-9]{3,13}"
 
-# Expiration delta for payment url of internal participants
+# Expiration delta for payment url of internal participants and party beasts
 INTERNALS_EXPIRATION_DELTA = datetime.timedelta(hours=2)
+PARTY_BEASTS_EXPIRATION_DELTA = datetime.timedelta(hours=24)
 
 
 # In the Heroku environment

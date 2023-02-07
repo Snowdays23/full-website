@@ -29,8 +29,8 @@ from rest_framework import viewsets, permissions
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from post_office import mail
 
-from snowdays23.models import Participant
-from snowdays23.serializers import ParticipantSerializer, NewParticipantSerializer
+from snowdays23.models import Participant, PartyBeast
+from snowdays23.serializers import ParticipantSerializer, NewParticipantSerializer, PartyBeastSerializer
 
 from sd23payments.models import Order, BillableItem
 
@@ -101,6 +101,48 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 },
                 priority='now'
             )
+
+
+class PartyBeastViewSet(viewsets.ModelViewSet):
+    queryset = PartyBeast.objects.all()
+    serializer_class = PartyBeastSerializer
+    
+    def list(self, request, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_staff:
+            return Response(
+                [], 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        return super().list(self, request, **kwargs)
+
+    def perform_create(self, serializer):
+        party_beast = serializer.save()
+
+        # If previous order(s) associated to this party beast exist(s), they must be
+        # deleted: user has signed up again (maybe payment link has expired) 
+        orders = Order.objects.filter(party_beast=party_beast)
+        if orders.exists():
+            orders.delete()
+
+        ticket = BillableItem.objects.get(slug="party-beast-pack")
+        order = Order.objects.create(
+            party_beast=party_beast
+        )
+        order.items.add(ticket)
+
+        mail.send(
+            party_beast.user.email,
+            "Snowdays <noreply@snowdays.it>",
+            template="party-form-confirmation",
+            context={
+                'host': settings.HOST,
+                'party_beast': party_beast,
+                'checkout_url': reverse("stripe-checkout", kwargs={
+                    "sd_order_id": order.sd_order_id
+                }, current_app="sd23payments")
+            },
+            priority='now'
+        )
 
 
 class GetParticipantByBraceletId(APIView):

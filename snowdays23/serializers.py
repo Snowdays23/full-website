@@ -27,7 +27,18 @@ from django.db.models import Sum
 
 from rest_framework import serializers
 
-from snowdays23.models import Participant, AllowedParticipant, AllowedAlumnus, EatingHabits, University, Gear, Policies, Residence, InternalUserType
+from snowdays23.models import (
+    Participant, 
+    AllowedParticipant, 
+    AllowedAlumnus, 
+    EatingHabits, 
+    University, 
+    Gear, 
+    Policies, 
+    Residence, 
+    InternalUserType, 
+    PartyBeast
+)
 from sd23payments.models import Order
 
 
@@ -376,4 +387,69 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             'is_helper',
             'is_host',
             'guests'
+        )
+
+
+class PartyBeastSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    email = serializers.CharField()
+    policies = PoliciesSerializer()
+    
+    def validate_email(self, email):
+        if not email.lower().endswith("@unibz.it"):
+            raise serializers.ValidationError(_("Only unibz students can be party beasts. Sorry!"))
+
+        o = Order.objects.filter(
+            party_beast__user__email=email,
+        )
+        if o.exists() and (o.first().status != "pending" or o.first().created >= datetime.datetime.now(
+            tz=o.first().created.tzinfo
+        ) - settings.PARTY_BEASTS_EXPIRATION_DELTA):
+            raise serializers.ValidationError(_("Email is already registered"))
+        return email
+
+    def validate_phone(self, phone):
+        if not re.match(settings.PHONE_NUMBER_REGEX, phone):
+            raise serializers.ValidationError(_("Phone number is not valid"))
+        return phone
+
+    def validate(self, data):
+        if not PartyBeast.can_enrol():
+            raise serializers.ValidationError(_("No slots left"))
+        return data
+
+    def create(self, validated_data):
+        email = validated_data.pop('email')
+        first_name = validated_data.pop('first_name')
+        last_name = validated_data.pop('last_name')
+        policies = Policies.objects.create(**validated_data.pop('policies'))
+        
+        party_beast, created = PartyBeast.objects.update_or_create(
+            user__email__iexact=email,
+            defaults={
+                'user': User.objects.update_or_create(
+                    email__iexact=email, 
+                    defaults={
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'email': email,
+                        'username': email
+                    }
+                )[0],
+                **validated_data
+            }
+        )
+
+        party_beast.save()
+        return party_beast
+
+    class Meta:
+        model = PartyBeast
+        fields = (
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'policies'
         )

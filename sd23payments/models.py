@@ -21,7 +21,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils.translation import gettext_lazy as _
 
-from snowdays23.models import Participant
+from snowdays23.models import Participant, PartyBeast
 
 import sd23payments.utils
 
@@ -63,7 +63,17 @@ class Order(models.Model):
     participant = models.ForeignKey(
         Participant,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         verbose_name=_("participant that placed this order")
+    )
+
+    party_beast = models.ForeignKey(
+        PartyBeast,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name=_("party beast that placed this order")
     )
 
     status = models.CharField(
@@ -81,18 +91,24 @@ class Order(models.Model):
         verbose_name=_("creation date and time of this order")
     )
 
-    # amount = models.IntegerField(
-    #     verbose_name=_("total amount of this order"),
-    #     validators=[
-    #         MinValueValidator(0)
-    #     ]
-    # )
-
     items = models.ManyToManyField(
         BillableItem,
         blank=True,
         verbose_name=_("items included in this order")
     )
 
+    def save(self, *args, **kwargs):
+        if not self.participant and not self.party_beast:
+            raise ValidationError(
+                _("Orders must either be placed by a participant or a party beast"),
+                code='order_without_buyer'
+            )
+        if self.participant and self.party_beast:
+            raise ValidationError(
+                _("Orders must either be placed by a participant or a party beast"),
+                code='order_with_multiple_buyers'
+            )
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.sd_order_id} [{self.status}] for {self.participant}"
+        return f"{self.sd_order_id} [{self.status}] for {self.participant if self.participant else self.party_beast}"

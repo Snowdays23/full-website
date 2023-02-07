@@ -17,16 +17,34 @@
 
 import datetime
 
+from django import forms
+from django.utils.translation import gettext_lazy as _
+
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.shortcuts import render
 from django.db.models import Sum, Count, Q
 from django.utils.html import format_html
+from django.views.generic import TemplateView
 
 from import_export import resources, fields, widgets
 from import_export.admin import ExportMixin
 
-from snowdays23.models import Participant, University, Sport, MerchItem, EatingHabits, Gear, AllowedParticipant, AllowedAlumnus, InternalUserType, Residence
+from snowdays23.models import (
+    Participant, 
+    University, 
+    Sport, 
+    MerchItem, 
+    EatingHabits, 
+    Gear, 
+    AllowedParticipant, 
+    AllowedAlumnus, 
+    InternalUserType, 
+    Residence,
+    PartyBeast
+)
+from snowdays23 import forms
 
 
 def register(model, **kw):
@@ -360,7 +378,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
 
 
 class UniversityAdmin(admin.ModelAdmin):
-    list_display = ("name", "helpers", "hosted", "full", "rentals", "distinct_types_counter")
+    list_display = ("name", "helpers", "hosted", "full", "rentals", "distinct_types_counter", "party_beasts")
 
     def helpers(self, obj):
         return Participant.objects.filter(
@@ -387,6 +405,20 @@ class UniversityAdmin(admin.ModelAdmin):
             internal_type__name="full",
             order__status="paid"
         ).count()
+
+    def party_beasts(self, obj):
+        if not obj.slug == "unibz":
+            return 0
+        paid = PartyBeast.objects.filter(
+            order__status="paid"
+        ).count()
+        payable = PartyBeast.objects.filter(
+            order__status="pending",
+            order__created__gt=datetime.datetime.now(
+                tz=datetime.timezone.utc
+            ) - settings.PARTY_BEASTS_EXPIRATION_DELTA
+        ).count()
+        return format_html(f"<b>Total</b>: {paid + payable}<br><br><b>Paid</b>: {paid}<br><b>Valid pending</b>: {payable}")
 
     def distinct_types_counter(self, obj):
         paid_internals = Participant.objects.filter(
@@ -439,7 +471,7 @@ class UniversityAdmin(admin.ModelAdmin):
             internal_type__guests=4
         ).count()
 
-        return format_html(f"paid distinct counters:<br><b>Externals:</b> {paid_externals}<br><b>Alumni:</b> {alumni}<br><b>Host 1:</b> {host1}<br><b>Host 2:</b> {host2}<br><b>Host 3:</b> {host3}<br><b>Host 4:</b> {host4}<br><b>Helpers:</b> {helpers}<br><b>Helper + Host 1:</b> {helper_host1}<br><b>Helper + Host 2:</b> {helper_host2}<br><b>Helper + Host 3:</b> {helper_host3}<br><b>Helper + Host 4:</b> {helper_host4}")
+        return format_html(f"<b>Externals:</b> {paid_externals}<br><b>Alumni:</b> {alumni}<br><b>Host 1:</b> {host1}<br><b>Host 2:</b> {host2}<br><b>Host 3:</b> {host3}<br><b>Host 4:</b> {host4}<br><b>Helpers:</b> {helpers}<br><b>Helper + Host 1:</b> {helper_host1}<br><b>Helper + Host 2:</b> {helper_host2}<br><b>Helper + Host 3:</b> {helper_host3}<br><b>Helper + Host 4:</b> {helper_host4}")
         
 
     def rentals(self, obj):
@@ -466,6 +498,12 @@ class ResidenceAdmin(admin.ModelAdmin):
             internal=True
         ).aggregate(Sum('internal_type__guests'))['internal_type__guests__sum']
 
+
+class PartyBeastAdmin(admin.ModelAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        return forms.PartyBeastForm
+
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(University, UniversityAdmin)
 admin.site.register(Residence, ResidenceAdmin)
+admin.site.register(PartyBeast, PartyBeastAdmin)

@@ -1,0 +1,30 @@
+Ciao {{party_beast.first_name}} {{party_beast.last_name}},
+
+Welcome aboard the Snowdays23 squad! We can't wait to see you for the long-awaited next chapter of Snowdays. The sign-up process is complete and all there's left for you to do is purchase the ticket that will secure your entrance to the party(s).                    
+
+This is a recap of the info you just inserted, in case you made a mistake, please contact us (at info@snowdays.it) so we can fix it before proceeding:
+
+Full Name: {{party_beast.first_name}} {{party_beast.last_name}}
+Phone Number: {{party_beast.phone}}
+
+Once you made sure that all your details are correct, you're ready to go!
+
+Click on the following link to get to our checkout page.  
+Here it is: {{host}}{{checkout_url}}
+
+We kindly ask you to proceed as soon as possible! Be aware that you need to pay within the 15th of February 2023 at midnight.
+
+We cannot wait to see you go crazy on the dance floor!
+Because remember, there are no days like Snowdays!
+
+Best,
+SD23 team
+
+❄❄❄❄❄❄❄❄❄❄❄❄❄❄❄
+SNOWDAYS 
+❄ Europe's biggest winter sports event organised by students for students ❄
+
+
+C5.06 - Universitätsplatz / Piazza Università, 1
+I - 39100 Bozen/Bolzano
+IG: @snowdays.bolzano
