@@ -50,11 +50,11 @@ class Command(BaseCommand):
         if new_participant_order.status == "paid":
             sys.exit(f"Error: new order has already been paid!")
         
+        old_email = old_participant.user.email
         if not dry_run:
             new_participant_order.delete()
             old_participant_order.participant = new_participant
             old_participant_order.save()
-
-            old_email = old_participant.user.email
             old_participant.delete()
+
         print(f"Deleted old participant ({old_email}), new participant ({new_participant.user.email}) is now bound to order {old_participant_order.sd_order_id}")
