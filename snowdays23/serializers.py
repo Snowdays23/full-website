@@ -182,14 +182,22 @@ class NewParticipantSerializer(serializers.ModelSerializer):
             # it is already registered and could be in the payment timespan.
             # If such order exists, then raise iff it is not pending (so it has been paid) or is has
             # been created less than two hours ago (user has still time to pay).
-            o = Order.objects.filter(
+            participant_order = Order.objects.filter(
                 participant__user__email__iexact=email,
             )
-            if o.exists() and (o.first().status != "pending" or o.first().created >= datetime.datetime.now(
-                tz=o.first().created.tzinfo
+            party_beast_order = Order.objects.filter(
+                party_beast__user__email__iexact=email
+            )
+            if party_beast_order.exists() and (party_beast_order.first().status != "pending" or party_beast_order.first().created >= datetime.datetime.now(
+                tz=party_beast_order.first().created.tzinfo
+            ) - settings.PARTY_BEASTS_EXPIRATION_DELTA):
+                raise serializers.ValidationError(_("Email is already registered"))
+            
+            if participant_order.exists() and (participant_order.first().status != "pending" or participant_order.first().created >= datetime.datetime.now(
+                tz=participant_order.first().created.tzinfo
             ) - settings.INTERNALS_EXPIRATION_DELTA):
                 raise serializers.ValidationError(_("Email is already registered"))
-            elif o.exists():
+            elif participant_order.exists():
                 # if order exists (participant already registered) but is has not been paid and
                 # the payment timespan has ended (expired), the registration number check has to
                 # be skipped, as participant can enroll again and old participant will be replaced
@@ -401,12 +409,21 @@ class PartyBeastSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("Only unibz students can be party beasts. Sorry!"))
 
         o = Order.objects.filter(
-            party_beast__user__email=email,
+            party_beast__user__email__iexact=email,
         )
         if o.exists() and (o.first().status != "pending" or o.first().created >= datetime.datetime.now(
             tz=o.first().created.tzinfo
         ) - settings.PARTY_BEASTS_EXPIRATION_DELTA):
             raise serializers.ValidationError(_("Email is already registered"))
+        
+        o = Order.objects.filter(
+            participant__user__email__iexact=email,
+        )
+        if o.exists() and (o.first().status != "pending" or o.first().created >= datetime.datetime.now(
+            tz=o.first().created.tzinfo
+        ) - settings.INTERNALS_EXPIRATION_DELTA):
+            raise serializers.ValidationError(_("Email is already registered"))
+        
         return email
 
     def validate_phone(self, phone):

@@ -62,6 +62,10 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         if orders.exists():
             orders.delete()
 
+        # If a party beast with the same email exists, it must be
+        # deleted: user has signed up again (maybe payment link has expired)
+        PartyBeast.objects.filter(user__email__iexact=participant.user.email).delete()
+
         if participant.internal and participant.internal_type.name == "alumnus":
             ticket = BillableItem.objects.get(slug="alumnus-ticket")
         elif participant.internal:
@@ -123,6 +127,10 @@ class PartyBeastViewSet(viewsets.ModelViewSet):
         orders = Order.objects.filter(party_beast=party_beast)
         if orders.exists():
             orders.delete()
+
+        # If a participant with the same email exists, it must be
+        # deleted: user has signed up again (maybe payment link has expired)
+        Participant.objects.filter(user__email__iexact=party_beast.user.email).delete()
 
         ticket = BillableItem.objects.get(slug="party-beast-pack")
         order = Order.objects.create(
