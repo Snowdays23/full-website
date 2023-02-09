@@ -500,8 +500,28 @@ class ResidenceAdmin(admin.ModelAdmin):
 
 
 class PartyBeastAdmin(admin.ModelAdmin):
+    list_display = ("first_name", "last_name", "email", "paid", "paid_in_person")
+
     def get_form(self, request, obj=None, **kwargs):
+        if obj:
+            return super().get_form(request, obj, **kwargs)
         return forms.PartyBeastForm
+
+    def paid(self, obj):
+        return obj.order_set.filter(
+            items__slug="party-beast-pack",
+            status="paid",
+        ).exists()
+
+    def paid_in_person(self, obj):
+        return obj.order_set.filter(
+            items__slug="party-beast-pack",
+            status="paid",
+            stripe_order_id="POS"
+        ).exists()
+
+    paid.boolean = True
+    paid_in_person.boolean = True
 
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(University, UniversityAdmin)
