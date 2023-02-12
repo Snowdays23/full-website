@@ -23,10 +23,12 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, reverse
 from django.db.models import Sum, Count, Q
 from django.utils.html import format_html
-from django.views.generic import TemplateView
+from django.views.generic import View
+from django.http import HttpResponse
+from django.urls import path
 
 from import_export import resources, fields, widgets
 from import_export.admin import ExportMixin
@@ -76,7 +78,6 @@ register(
     AllowedAlumnus,
     search_fields=("email__icontains", )
 )
-
 
 class ExportSportMixin:
     def dehydrate_rented_gear(self, instance):
@@ -359,6 +360,44 @@ class InternalParticipantResourceWithSport(ExportInternalsMixin, ParticipantReso
 class InternalParticipantResourceWithAllInfo(ExportInternalsMixin, ParticipantResourceWithAllInfo):
     pass
 
+class ExternalUniversityPhonesResource(resources.ModelResource):
+    first_name = fields.Field(
+        column_name="first_name",
+        attribute="user",
+        widget=widgets.ForeignKeyWidget(User, "first_name")
+    )
+
+    last_name = fields.Field(
+        column_name="last_name",
+        attribute="user",
+        widget=widgets.ForeignKeyWidget(User, "last_name")
+    )
+
+    email = fields.Field(
+        column_name="email",
+        attribute="user",
+        widget=widgets.ForeignKeyWidget(User, "email")
+    )
+
+    class Meta:
+        model = Participant
+        fields = (
+            'first_name',
+            'last_name',
+            'email',
+            'phone'
+        )
+
+class ExternalUniversityPhonesView(View):
+    def get(self, request, slug=None, **kwargs):
+        university = get_object_or_404(University, slug=slug)
+        dataset = ExternalUniversityPhonesResource().export(
+            Participant.objects.filter(university=university)
+        )
+        response = HttpResponse(dataset.csv, content_type="csv")
+        response['Content-Disposition'] = f"attachment; filename=phonenrs_{university.slug}.csv"
+        return response
+
 class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
     resource_classes = [
         ExternalParticipantResourceWithCatering,
@@ -378,7 +417,13 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
 
 
 class UniversityAdmin(admin.ModelAdmin):
-    list_display = ("name", "helpers", "hosted", "full", "rentals", "distinct_types_counter", "party_beasts")
+    list_display = ("name", "helpers", "hosted", "full", "rentals", "distinct_types_counter", "party_beasts", "phones")
+
+    def get_urls(self):
+        return [
+            *super().get_urls(),
+            path('phones/<str:slug>', self.admin_site.admin_view(ExternalUniversityPhonesView.as_view()), name='phones')
+        ]
 
     def helpers(self, obj):
         return Participant.objects.filter(
@@ -472,7 +517,6 @@ class UniversityAdmin(admin.ModelAdmin):
         ).count()
 
         return format_html(f"<b>Externals:</b> {paid_externals}<br><b>Alumni:</b> {alumni}<br><b>Host 1:</b> {host1}<br><b>Host 2:</b> {host2}<br><b>Host 3:</b> {host3}<br><b>Host 4:</b> {host4}<br><b>Helpers:</b> {helpers}<br><b>Helper + Host 1:</b> {helper_host1}<br><b>Helper + Host 2:</b> {helper_host2}<br><b>Helper + Host 3:</b> {helper_host3}<br><b>Helper + Host 4:</b> {helper_host4}")
-        
 
     def rentals(self, obj):
         data = ""
@@ -487,6 +531,9 @@ class UniversityAdmin(admin.ModelAdmin):
                 )))['count']
             )
         return format_html(data)
+
+    def phones(self, obj):
+        return format_html(f'<a href="{reverse("admin:phones", args=(obj.slug, ))}">Download</a>')
 
 
 class ResidenceAdmin(admin.ModelAdmin):
