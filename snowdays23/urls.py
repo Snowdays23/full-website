@@ -41,11 +41,10 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+    TokenVerifyView
 )
 
 from snowdays23.views import (
-    GetParticipantByBraceletId, 
-    AssignBraceletToParticipant, 
     ParticipantViewSet,
     PartyBeastViewSet
 )
@@ -65,6 +64,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+
     path('api/participants', ParticipantViewSet.as_view({
         "get": "list",
         "post": "create"
@@ -73,9 +74,8 @@ urlpatterns = [
         "get": "list",
         "post": "create"
     }), name="all_party_beasts"),
-    path('api/participant/<str:uid>', GetParticipantByBraceletId.as_view(), name="part_by_uid"),
-    path('api/participant/<int:pk>/<str:uid>', AssignBraceletToParticipant.as_view(), name="uid_to_part"),
     path('api/payments/', include('sd23payments.urls')),
+    path('api/track/', include('sd23log.urls')),
 
     path('not-found', serve_react, name="not-found"),
     path('error', serve_react, name="error"),
