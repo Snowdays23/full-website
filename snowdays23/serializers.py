@@ -405,8 +405,8 @@ class PartyBeastSerializer(serializers.ModelSerializer):
     policies = PoliciesSerializer()
     
     def validate_email(self, email):
-        if not email.lower().endswith("@unibz.it"):
-            raise serializers.ValidationError(_("Only unibz students can be party beasts. Sorry!"))
+        # if not email.lower().endswith("@unibz.it"):
+        #     raise serializers.ValidationError(_("Only unibz students can be party beasts. Sorry!"))
 
         o = Order.objects.filter(
             party_beast__user__email__iexact=email,
