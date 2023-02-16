@@ -19,9 +19,19 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-from sd23log.views import GetParticipantByBraceletId, AssignBraceletToParticipant
+from sd23log.views import (
+    GetParticipantByBraceletId, 
+    AssignBraceletToParticipant,
+    CheckInParticipantOrPartyBeast,
+    EventViewSet
+)
 
 urlpatterns = [
-    path('api/participant/<str:uid>', GetParticipantByBraceletId.as_view(), name="get-participant-by-uid"),
-    path('api/participant/<int:pk>/<str:uid>', AssignBraceletToParticipant.as_view(), name="assign-bracelet-to-participant"),
+    path('participant/<str:uid>', GetParticipantByBraceletId.as_view(), name="get-participant-by-uid"),
+    path('participant/<int:pk>/<str:uid>', AssignBraceletToParticipant.as_view(), name="assign-bracelet-to-participant"),
+    path('event/<str:event_slug>/check-in/<str:bracelet_uid>', CheckInParticipantOrPartyBeast.as_view(), name="check-in-to-event"),
+    path('events', EventViewSet.as_view({
+        "get": "list",
+        "post": "create"
+    }), name="check-in-to-event"),
 ]

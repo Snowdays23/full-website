@@ -17,14 +17,81 @@
 
 from django.conf import settings
 from django.shortcuts import render
+from django.utils.translation import gettext_lazy as _
 
 from rest_framework import status, viewsets, permissions
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from snowdays23.models import Participant
+from snowdays23.models import Participant, PartyBeast
 from snowdays23.serializers import ParticipantSerializer
+
+from sd23log.models import Event, CheckIn
+from sd23log.serializers import NewEventSerializer, EventSerializer
+
+
+class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all()
+    
+    def get_serializer_class(self):
+        if not hasattr(self, 'action'):
+            return EventSerializer
+        if self.action == "create":
+            return NewEventSerializer
+        return EventSerializer
+
+    def list(self, request, **kwargs):
+        # if not request.user.is_authenticated or not request.user.is_staff:
+        #     return Response(
+        #         [], 
+        #         status=status.HTTP_401_UNAUTHORIZED
+        #     )
+        return super().list(self, request, **kwargs)
+
+
+class CheckInParticipantOrPartyBeast(APIView):
+    def post(self, request, event_slug=None, bracelet_uid=None):
+        if not event_slug or not bracelet_uid:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        participant = None
+        party_beast = None
+        try:
+            event = get_object_or_404(Event, slug=event_slug)
+            if Participant.objects.filter(bracelet_id=bracelet_uid).exists():
+                participant = Participant.objects.get(bracelet_id=bracelet_uid)
+            elif PartyBeast.objects.filter(bracelet_id=bracelet_uid).exists():
+                party_beast = PartyBeast.objects.get(bracelet_id=bracelet_uid)
+            else:
+                raise
+        except:
+            return Response({
+                "detail": _("Event or participant/partybeast not found")
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if party_beast and event.only_participants:
+            return Response({
+                "detail": _("Event is participants only!")
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if CheckIn.objects.filter(
+            event=event, participant=participant
+        ).exists() or CheckIn.objects.filter(
+            event=event, party_beast=party_beast
+        ).exists():
+            return Response({
+                "detail": _("Participant/partybeast already checked-in!")
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        CheckIn.objects.create(
+            event=event,
+            participant=participant or None,
+            party_beast=party_beast or None
+        )
+        return Response({
+            "detail": _("Checked-in successfully!")
+        }, status=status.HTTP_200_OK)
 
 
 class GetParticipantByBraceletId(APIView):
