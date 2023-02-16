@@ -408,6 +408,13 @@ class AllPartyBeastsResource(resources.ModelResource):
         widget=widgets.ForeignKeyWidget(User, "email")
     )
 
+    order_nr = fields.Field(
+        column_name="order_nr"
+    )
+
+    def dehydrate_order_nr(self, instance):
+        return instance.order_set.get(items__slug__icontains="party-beast-pack").sd_order_id
+
     def get_queryset(self):
         return PartyBeast.objects.filter(
             order__isnull=False,
