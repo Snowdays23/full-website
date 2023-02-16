@@ -59,8 +59,8 @@ class PartyBeastForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data['email']
-        if not email.lower().endswith("@unibz.it"):
-            raise ValidationError(_("Only unibz students can be party beasts. Sorry!"))
+        # if not email.lower().endswith("@unibz.it"):
+        #     raise ValidationError(_("Only unibz students can be party beasts. Sorry!"))
         o = Order.objects.filter(
             party_beast__user__email=email,
         )
