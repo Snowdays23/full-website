@@ -42,7 +42,7 @@ class EventViewSet(viewsets.ModelViewSet):
         return EventSerializer
 
     def retrieve(self, request, slug=None):
-        event = get_object_or_404(queryset, slug=slug)
+        event = get_object_or_404(self.get_queryset(), slug=slug)
         serializer = self.get_serializer_class()
         return Response(serializer.data)
 
