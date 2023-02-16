@@ -388,6 +388,45 @@ class ExternalUniversityPhonesResource(resources.ModelResource):
             'phone'
         )
 
+
+class AllPartyBeastsResource(resources.ModelResource):
+    first_name = fields.Field(
+        column_name="first_name",
+        attribute="user",
+        widget=widgets.ForeignKeyWidget(User, "first_name")
+    )
+
+    last_name = fields.Field(
+        column_name="last_name",
+        attribute="user",
+        widget=widgets.ForeignKeyWidget(User, "last_name")
+    )
+
+    email = fields.Field(
+        column_name="email",
+        attribute="user",
+        widget=widgets.ForeignKeyWidget(User, "email")
+    )
+
+    def get_queryset(self):
+        return PartyBeast.objects.filter(
+            order__isnull=False,
+            order__status="paid",
+        ).distinct()
+
+    def export(self, queryset=None, *args, **kwargs):
+        return super().export(None, *args, **kwargs)
+
+    class Meta:
+        model = PartyBeast
+        fields = (
+            'first_name',
+            'last_name',
+            'email',
+            'phone'
+        )
+
+
 class ExternalUniversityPhonesView(View):
     def get(self, request, slug=None, **kwargs):
         university = get_object_or_404(University, slug=slug)
@@ -546,7 +585,10 @@ class ResidenceAdmin(admin.ModelAdmin):
         ).aggregate(Sum('internal_type__guests'))['internal_type__guests__sum']
 
 
-class PartyBeastAdmin(admin.ModelAdmin):
+class PartyBeastAdmin(ExportMixin, admin.ModelAdmin):
+    resource_classes = [
+        AllPartyBeastsResource
+    ]
     list_display = ("first_name", "last_name", "email", "paid", "paid_in_person")
 
     def get_form(self, request, obj=None, **kwargs):
