@@ -33,5 +33,8 @@ urlpatterns = [
     path('events', EventViewSet.as_view({
         "get": "list",
         "post": "create"
-    }), name="check-in-to-event"),
+    }), name="events"),
+    path('event/<str:slug>', EventViewSet.as_view({
+        "get": "retrieve"
+    }), name="event-by-slug")
 ]

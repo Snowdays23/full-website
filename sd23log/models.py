@@ -53,6 +53,9 @@ class CheckIn(models.Model):
         verbose_name=_("time of check-in")
     )
 
+    def __str__(self):
+        return f"{self.participant if self.participant else self.party_beast} @ {self.event.slug} [{self.scanning_time}]"
+
     def save(self, *args, **kwargs):
         if self.participant and self.party_beast:
             raise ValidationError(_("check-in can be performed by either a participant or a party beast"))
@@ -104,3 +107,6 @@ class Event(models.Model):
         if self.only_participants:
             return Participant.objects.count()
         return Participant.objects.count() + PartyBeast.objects.count()
+
+    def __str__(self):
+        return self.name    

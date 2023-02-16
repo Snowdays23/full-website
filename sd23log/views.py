@@ -41,6 +41,11 @@ class EventViewSet(viewsets.ModelViewSet):
             return NewEventSerializer
         return EventSerializer
 
+    def retrieve(self, request, slug=None):
+        event = get_object_or_404(queryset, slug=slug)
+        serializer = self.get_serializer_class()
+        return Response(serializer.data)
+
     def list(self, request, **kwargs):
         # if not request.user.is_authenticated or not request.user.is_staff:
         #     return Response(
