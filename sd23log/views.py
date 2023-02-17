@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 from django.conf import settings
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
