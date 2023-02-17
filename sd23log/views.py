@@ -74,7 +74,7 @@ class CheckInParticipantOrPartyBeast(APIView):
                 raise
         except:
             return Response({
-                "detail": _("Event or participant/partybeast not found")
+                "detail": _("Person not found")
             }, status=status.HTTP_404_NOT_FOUND)
 
         if party_beast and event.only_participants:
@@ -83,12 +83,12 @@ class CheckInParticipantOrPartyBeast(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         if CheckIn.objects.filter(
-            event=event, participant=participant
+            event=event, participant=participant, participant__isnull=False
         ).exists() or CheckIn.objects.filter(
-            event=event, party_beast=party_beast
+            event=event, party_beast=party_beast, party_beast__isnull=False
         ).exists():
             return Response({
-                "detail": _("Participant/partybeast already checked-in!")
+                "detail": _("Already checked-in!")
             }, status=status.HTTP_400_BAD_REQUEST)
 
         CheckIn.objects.create(
