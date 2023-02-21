@@ -128,6 +128,9 @@ class SchlafiSerializer(serializers.ModelSerializer):
             'gender',
             'student_nr',
             'dob',
+            'bracelet_id',
+            'university',
+            'dob',
             'phone',
             'residence',
             'internal_type'
