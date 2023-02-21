@@ -45,13 +45,13 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             return NewParticipantSerializer
         return ParticipantSerializer
 
-    def list(self, request, **kwargs):
-        if not request.user.is_authenticated or not request.user.is_staff:
-            return Response(
-                [], 
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-        return super().list(self, request, **kwargs)
+    # def list(self, request, **kwargs):
+    #     if not request.user.is_authenticated or not request.user.is_staff:
+    #         return Response(
+    #             [], 
+    #             status=status.HTTP_401_UNAUTHORIZED
+    #         )
+    #     return super().list(self, request, **kwargs)
 
     def perform_create(self, serializer):
         participant = serializer.save()

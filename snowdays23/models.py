@@ -505,6 +505,11 @@ class Participant(models.Model):
                 _("Schlafi host must be an internal participant"),
                 code='schlafi_host_must_be_internal'
             )
+        if self.schlafi and self.schlafi.internal_type.guests == 0:
+            raise ValidationError(
+                _("Schlafi host must be host or host+helper"),
+                code='schlafi_host_must_be_host'
+            )
         super().save(*args, **kwargs)
 
     def delete(self, **kwargs):
