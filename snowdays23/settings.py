@@ -189,7 +189,7 @@ PARTY_BEASTS_EXPIRATION_DELTA = datetime.timedelta(hours=24)
 
 # App token duration
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME" = datetime.timedelta(days=3)
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=3)
 }
 
 
