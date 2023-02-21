@@ -140,6 +140,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
     rented_gear = GearSerializer(many=True)
     internal_type = InternalUserTypeSerializer()
     schlafi = SchlafiSerializer()
+    residence = ResidenceSerializer()
 
     class Meta:
         model = Participant
