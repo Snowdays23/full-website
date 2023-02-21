@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'post_office',
     'snowdays23',
     'sd23payments',
+    'sd23log',
     'django_inlinecss',
     'import_export'
 ]
@@ -202,6 +203,8 @@ if "DATABASE_URL" in os.environ:
     EMAIL_HOST_PASSWORD = os.environ["ARUBA_EMAIL_PASSWORD"]
 
     HOST = os.environ["HOST"]
+
+    CSRF_TRUSTED_ORIGINS = [ HOST ]
 
 
 STRIPE_CHECKOUT_SUCCESS_URL = "http://localhost:8000/api/payments/order/%s/stripe/success"

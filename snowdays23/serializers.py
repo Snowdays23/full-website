@@ -48,65 +48,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'first_name', 'last_name')
 
 
-class EatingHabitsSerializer(serializers.ModelSerializer):
+class InternalUserTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = EatingHabits
+        model = InternalUserType
         fields = '__all__'
-
-    def validate(self, data):
-        if data['vegan']:
-            data['vegetarian'] = True
-        return data
-
-
-class UniversitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = University
-        fields = '__all__'
-
-
-class GearSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Gear
-        fields = '__all__'
-
-
-class ParticipantSerializer(serializers.ModelSerializer):
-    eating_habits = EatingHabitsSerializer()
-    university = UniversitySerializer()
-    # schlafi = ParticipantSerializer()
-
-    class Meta:
-        model = Participant
-        fields = (
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'email',
-            'gender',
-            'university',
-            'student_nr',
-            'dob',
-            'phone',
-            'eating_habits',
-            'additional_notes',
-            'bracelet_id',
-            'internal',
-            'needs_accomodation',
-            'schlafi'
-        )
-
-
-class PoliciesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Policies
-        fields = '__all__'
-
-    def validate(self, data):
-        if not data["privacy"] or not data["terms"] or not data["payment"]:
-            raise serializers.ValidationError(_("Privacy policy, general terms and payment policy have to be read and accepted to proceed"))
-        return data
 
 
 class ResidenceSerializer(serializers.ModelSerializer):
@@ -141,6 +86,97 @@ class ResidenceSerializer(serializers.ModelSerializer):
             data['city'] = college.city
             data['college_name'] = college.college_name
             data['max_guests'] = college.max_guests
+        return data
+
+
+class EatingHabitsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EatingHabits
+        fields = '__all__'
+
+    def validate(self, data):
+        if data['vegan']:
+            data['vegetarian'] = True
+        return data
+
+
+class UniversitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = University
+        fields = '__all__'
+
+
+class GearSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gear
+        fields = '__all__'
+
+
+class SchlafiSerializer(serializers.ModelSerializer):
+    internal_type = InternalUserTypeSerializer()
+    residence = ResidenceSerializer()
+
+    class Meta:
+        model = Participant
+        fields = (
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'gender',
+            'student_nr',
+            'dob',
+            'phone',
+            'residence',
+            'internal_type'
+        )
+
+
+class ParticipantSerializer(serializers.ModelSerializer):
+    eating_habits = EatingHabitsSerializer()
+    university = UniversitySerializer()
+    rented_gear = GearSerializer(many=True)
+    internal_type = InternalUserTypeSerializer()
+    schlafi = SchlafiSerializer()
+
+    class Meta:
+        model = Participant
+        fields = (
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'gender',
+            'university',
+            'student_nr',
+            'dob',
+            'phone',
+            'eating_habits',
+            'additional_notes',
+            'bracelet_id',
+            'internal',
+            'internal_type',
+            'needs_accomodation',
+            'schlafi',
+            'rented_gear',
+            'selected_sport',
+            'height',
+            'weight',
+            'shoe_size',
+            'helmet_size'
+        )
+
+
+class PoliciesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Policies
+        fields = '__all__'
+
+    def validate(self, data):
+        if not data["privacy"] or not data["terms"] or not data["payment"]:
+            raise serializers.ValidationError(_("Privacy policy, general terms and payment policy have to be read and accepted to proceed"))
         return data
 
 
@@ -464,9 +500,19 @@ class PartyBeastSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartyBeast
         fields = (
+            'id',
             'first_name',
             'last_name',
             'email',
             'phone',
-            'policies'
+            'policies',
+            'bracelet_id'
         )
+
+
+class ParticipantOrPartyBeastSerializer(serializers.Serializer):
+    participant = ParticipantSerializer()
+    party_beast = PartyBeastSerializer()
+
+    class Meta:
+        fields = ('participant', 'party_beast')
