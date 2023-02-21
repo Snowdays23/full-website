@@ -114,6 +114,7 @@ class GearSerializer(serializers.ModelSerializer):
 
 
 class SchlafiSerializer(serializers.ModelSerializer):
+    university = UniversitySerializer()
     internal_type = InternalUserTypeSerializer()
     residence = ResidenceSerializer()
 
