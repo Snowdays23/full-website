@@ -500,6 +500,7 @@ class PartyBeastSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartyBeast
         fields = (
+            'id',
             'first_name',
             'last_name',
             'email',
