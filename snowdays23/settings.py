@@ -187,6 +187,11 @@ PHONE_NUMBER_REGEX = "\+[0-9]{2,3} [0-9]{3,13}"
 INTERNALS_EXPIRATION_DELTA = datetime.timedelta(hours=2)
 PARTY_BEASTS_EXPIRATION_DELTA = datetime.timedelta(hours=24)
 
+# App token duration
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME" = datetime.timedelta(days=3)
+}
+
 
 # In the Heroku environment
 if "DATABASE_URL" in os.environ:
