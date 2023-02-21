@@ -454,7 +454,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         InternalParticipantResourceWithAllInfo,
     ]
     list_display = ("id", "first_name", "last_name", "email", "university", "gear", "internal_type")
-    search_fields = ("user__last_name__startswith", "user__email__icontains", )
+    search_fields = ("user__last_name__startswith", "user__email__icontains", "id")
 
     def gear(self, obj):
         return format_html(
