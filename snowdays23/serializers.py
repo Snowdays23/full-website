@@ -507,3 +507,11 @@ class PartyBeastSerializer(serializers.ModelSerializer):
             'policies',
             'bracelet_id'
         )
+
+
+class ParticipantOrPartyBeastSerializer(serializers.Serializer):
+    participant = ParticipantSerializer()
+    party_beast = PartyBeastSerializer()
+
+    class Meta:
+        fields = ('participant', 'party_beast')

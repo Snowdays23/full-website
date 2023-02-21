@@ -20,15 +20,17 @@ from django.urls import path, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from sd23log.views import (
-    GetParticipantByBraceletId, 
+    GetParticipantOrPartyBeastByBraceletId,
     AssignBraceletToParticipant,
+    AssignBraceletToPartyBeast,
     CheckInParticipantOrPartyBeast,
     EventViewSet
 )
 
 urlpatterns = [
-    path('participant/<str:uid>', GetParticipantByBraceletId.as_view(), name="get-participant-by-uid"),
+    path('people/<str:uid>', GetParticipantOrPartyBeastByBraceletId.as_view(), name="get-participant-or-party-beast-by-uid"),
     path('participant/<int:pk>/<str:uid>', AssignBraceletToParticipant.as_view(), name="assign-bracelet-to-participant"),
+    path('partybeast/<int:pk>/<str:uid>', AssignBraceletToPartyBeast.as_view(), name="assign-bracelet-to-party-beast"),
     path('event/<str:event_slug>/check-in/<str:bracelet_uid>', CheckInParticipantOrPartyBeast.as_view(), name="check-in-to-event"),
     path('events', EventViewSet.as_view({
         "get": "list",

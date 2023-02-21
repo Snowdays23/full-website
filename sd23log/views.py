@@ -27,7 +27,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from snowdays23.models import Participant, PartyBeast
-from snowdays23.serializers import ParticipantSerializer
+from snowdays23.serializers import ParticipantSerializer, PartyBeastSerializer, ParticipantOrPartyBeastSerializer
 
 from sd23log.models import Event, CheckIn
 from sd23log.serializers import NewEventSerializer, EventSerializer
@@ -49,11 +49,11 @@ class EventViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def list(self, request, **kwargs):
-        # if not request.user.is_authenticated or not request.user.is_staff:
-        #     return Response(
-        #         [], 
-        #         status=status.HTTP_401_UNAUTHORIZED
-        #     )
+        if not request.user.is_authenticated or not request.user.is_staff:
+            return Response(
+                [], 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
         return super().list(self, request, **kwargs)
 
 
@@ -101,15 +101,27 @@ class CheckInParticipantOrPartyBeast(APIView):
         }, status=status.HTTP_200_OK)
 
 
-class GetParticipantByBraceletId(APIView):
-    queryset = Participant.objects.all()
-    serializer_class = ParticipantSerializer
+class GetParticipantOrPartyBeastByBraceletId(APIView):
+    serializer_class = ParticipantOrPartyBeastSerializer
 
     def get(self, request, uid=None):
         if not uid:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        participant = get_object_or_404(Participant, bracelet_id=uid)
-        return Response(self.serializer_class(participant).data)
+        participant = Participant.objects.filter(bracelet_id=uid)
+        party_beast = PartyBeast.objects.filter(bracelet_id=uid)
+        if participant.exists():
+            return Response(self.serializer_class({
+                "participant": participant,
+                "party_beast": None
+            }).data)
+        elif party_beast.exists():
+            return Response(self.serializer_class({
+                "participant": None,
+                "party_beast": party_beast
+            }).data)
+        return Response({
+            "detail": _("No participant or party beast found with this bracelet")
+        }, status=status.HTTP_404_NOT_FOUND)
 
 
 class AssignBraceletToParticipant(APIView):
@@ -129,11 +141,51 @@ class AssignBraceletToParticipant(APIView):
         another = Participant.objects.filter(bracelet_id=uid)
         if another.exists():
             return Response({
-                "detail": _("UID already assigned to another participant")
+                "detail": _("Bracelet already assigned to another participant")
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        another = PartyBeast.objects.filter(bracelet_id=uid)
+        if another.exists():
+            return Response({
+                "detail": _("Bracelet already assigned to another party beast")
             }, status=status.HTTP_400_BAD_REQUEST)
 
         participant.bracelet_id = uid
         participant.save()
+
+        return Response({
+            "detail": _("Bracelet assigned successfully")
+        }, status=status.HTTP_200_OK)
+
+
+class AssignBraceletToPartyBeast(APIView):
+    def post(self, request, pk=None, uid=None):
+        if not pk or not uid:
+            return Response({
+                "detail": _("Missing parameters")
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        party_beast = get_object_or_404(PartyBeast, pk=pk)
+        
+        if not re.match(settings.BRACELET_ID_REGEX, uid):
+            return Response({
+                "detail": _("Invalid UID")
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        another = Participant.objects.filter(bracelet_id=uid)
+        if another.exists():
+            return Response({
+                "detail": _("Bracelet already assigned to another participant")
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        another = PartyBeast.objects.filter(bracelet_id=uid)
+        if another.exists():
+            return Response({
+                "detail": _("UID already assigned to another party beast")
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        party_beast.bracelet_id = uid
+        party_beast.save()
 
         return Response({
             "detail": _("Bracelet assigned successfully")
