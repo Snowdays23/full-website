@@ -126,7 +126,7 @@ class GetParticipantOrPartyBeastByBraceletId(APIView):
 
 class AssignBraceletToParticipant(APIView):
     def post(self, request, pk=None, uid=None):
-        if not pk or not uid:
+        if pk == None or uid == None:
             return Response({
                 "detail": _("Missing parameters")
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -160,7 +160,7 @@ class AssignBraceletToParticipant(APIView):
 
 class AssignBraceletToPartyBeast(APIView):
     def post(self, request, pk=None, uid=None):
-        if not pk or not uid:
+        if pk == None or uid == None:
             return Response({
                 "detail": _("Missing parameters")
             }, status=status.HTTP_400_BAD_REQUEST)
