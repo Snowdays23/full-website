@@ -48,6 +48,13 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(event)
         return Response(serializer.data)
 
+    def delete(self, request, slug=None):
+        event = get_object_or_404(self.get_queryset(), slug=slug)
+        event.delete()
+        return Response({
+            "detail": _("Checked-in successfully!")
+        }, status=status.HTTP_200_OK)
+
     def list(self, request, **kwargs):
         if not request.user.is_authenticated or not request.user.is_staff:
             return Response(
