@@ -36,7 +36,7 @@ class NewEventSerializer(serializers.ModelSerializer):
     slug = serializers.CharField(required=False)
 
     def validate(self, data):
-        data["slug"] = slugify(data["name"])
+        data["slug"] = slugify(data["name"]) + "-" + secrets.token_hex(3)
         if Event.objects.filter(slug=data["slug"]).exists():
             raise serializers.ValidationError(_("This event name is not available, please choose another one"))
         return data
