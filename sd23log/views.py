@@ -111,13 +111,13 @@ class GetParticipantOrPartyBeastByBraceletId(APIView):
         party_beast = PartyBeast.objects.filter(bracelet_id=uid)
         if participant.exists():
             return Response(self.serializer_class({
-                "participant": participant,
+                "participant": participant.first(),
                 "party_beast": None
             }).data)
         elif party_beast.exists():
             return Response(self.serializer_class({
                 "participant": None,
-                "party_beast": party_beast
+                "party_beast": party_beast.first()
             }).data)
         return Response({
             "detail": _("No participant or party beast found with this bracelet")
