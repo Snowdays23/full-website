@@ -63,6 +63,7 @@ class ResidenceSerializer(serializers.ModelSerializer):
             'city',
             'postal_code',
             'is_college',
+            'college_name',
             'college_slug'
         ]
     
@@ -160,6 +161,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
             'internal_type',
             'needs_accomodation',
             'schlafi',
+            'residence',
             'rented_gear',
             'selected_sport',
             'height',
